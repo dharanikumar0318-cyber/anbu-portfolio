@@ -1,0 +1,140 @@
+@import "tailwindcss";
+
+:root {
+  --background: #080a0f;
+  --foreground: #f1f5f9;
+  --safety-orange: #ff5f15;
+  --safety-orange-glow: rgba(255, 95, 21, 0.45);
+  --caution-yellow: #facc15;
+  --charcoal-950: #050608;
+  --charcoal-900: #080a0f;
+  --charcoal-850: #0d1017;
+  --charcoal-800: #121620;
+  --charcoal-700: #1a202c;
+  --charcoal-600: #252d3d;
+  --charcoal-500: #3b465c;
+  --charcoal-border: rgba(255, 255, 255, 0.08);
+}
+
+html {
+  scroll-behavior: smooth;
+  color-scheme: dark;
+  background-color: #080a0f;
+}
+
+body {
+  background-color: #080a0f;
+  color: #f1f5f9;
+  font-family: var(--font-inter), 'Inter', system-ui, -apple-system, sans-serif;
+  overflow-x: hidden;
+}
+
+/* Custom Mechanical Cursor: hide default cursor on desktop */
+@media (min-width: 768px) {
+  html, body, button, a, input, textarea, select {
+    cursor: none !important;
+  }
+}
+
+::selection {
+  background: #ff5f15;
+  color: #080a0f;
+}
+
+/* Custom Industrial Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #080a0f;
+  border-left: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+::-webkit-scrollbar-thumb {
+  background: #252d3d;
+  border-radius: 2px;
+  border: 1px solid rgba(255, 95, 21, 0.2);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #ff5f15;
+}
+
+/* Technical Drafting Grid Patterns */
+.bg-cad-grid {
+  background-image: 
+    linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+.bg-cad-grid-dense {
+  background-image: 
+    linear-gradient(rgba(255, 95, 21, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 95, 21, 0.05) 1px, transparent 1px);
+  background-size: 16px 16px;
+}
+
+.bg-dot-matrix {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* Laser Cut Border Glow Effects */
+.laser-border-glow {
+  position: relative;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.laser-border-glow:hover {
+  border-color: #ff5f15 !important;
+  box-shadow: 
+    0 0 20px rgba(255, 95, 21, 0.35),
+    inset 0 0 15px rgba(255, 95, 21, 0.08);
+}
+
+/* Pulse laser scanline */
+@keyframes laser-sweep {
+  0% { transform: translateY(-100%); opacity: 0; }
+  50% { opacity: 0.8; }
+  100% { transform: translateY(1000%); opacity: 0; }
+}
+
+.animate-laser-sweep {
+  animation: laser-sweep 4s linear infinite;
+}
+
+/* Monospace font utility */
+.font-mono-cad {
+  font-family: var(--font-mono), 'JetBrains Mono', monospace;
+  letter-spacing: -0.02em;
+}
+
+/* Subtle corner tick lines for technical drawings */
+.tech-corners {
+  position: relative;
+}
+.tech-corners::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: -1px;
+  width: 8px;
+  height: 8px;
+  border-top: 2px solid #ff5f15;
+  border-left: 2px solid #ff5f15;
+  pointer-events: none;
+}
+.tech-corners::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  right: -1px;
+  width: 8px;
+  height: 8px;
+  border-bottom: 2px solid #ff5f15;
+  border-right: 2px solid #ff5f15;
+  pointer-events: none;
+}
