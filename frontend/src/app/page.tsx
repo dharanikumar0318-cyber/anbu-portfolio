@@ -1,851 +1,1696 @@
-'use client'
+'use client';
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from 'react';
 import {
+  motion,
+  AnimatePresence,
+  useScroll,
+  useTransform,
+  useSpring,
+  useMotionValue,
+} from 'framer-motion';
+import SwarmPreloader from '../components/SwarmPreloader';
+import {
+  Cog,
+  Wrench,
+  Ruler,
+  Crosshair,
+  Database,
+  Activity,
+  Gauge,
+  Wind,
+  Flame,
+  Zap,
+  Layers,
+  Cpu,
+  Compass,
+  ShieldCheck,
+  BarChart3,
+  TrendingUp,
+  Clock,
+  Users,
+  DollarSign,
+  Workflow,
+  CheckCircle2,
+  AlertTriangle,
+  FileText,
   Download,
-  ArrowRight,
+  Send,
   Mail,
   Phone,
-  Wind,
-  Gauge,
-  Droplets,
   MapPin,
-  Send,
-} from "lucide-react";
-import { Spotlight } from '../components/motion-primitives/spotlight';
+  ChevronRight,
+  ExternalLink,
+  ArrowUpRight,
+  Maximize2,
+  Sliders,
+  Terminal,
+  Search,
+  Radio,
+  CornerDownRight,
+  GraduationCap,
+  Briefcase,
+  Factory,
+  Car,
+  X,
+  Play,
+  Copy,
+  Check,
+  Settings,
+  ArrowUp
+} from 'lucide-react';
 
 /* ------------------------------------------------------------------ */
-/* Brand icons — lucide-react dropped Linkedin/Github (trademark      */
-/* restrictions), so these are small inline replacements in the       */
-/* same stroke style.                                                 */
+/* TYPES & INTERFACES                                                 */
 /* ------------------------------------------------------------------ */
 
-function LinkedinIcon({ size = 18 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" />
-      <rect x="2" y="9" width="4" height="12" />
-      <circle cx="4" cy="4" r="2" />
-    </svg>
-  );
+interface ProjectData {
+  id: string;
+  code: string;
+  title: string;
+  subtitle: string;
+  category: string;
+  icon: React.ComponentType<{ className?: string; size?: number }>;
+  summary: string;
+  metrics: { label: string; value: string; delta?: string }[];
+  tags: string[];
+  specs: { [key: string]: string };
+  methodology: string[];
+  outcomes: string[];
+  schematicType: 'pneumatic' | 'energy' | 'bio' | 'kart';
 }
 
-function GithubIcon({ size = 18 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M9 19c-4.3 1.4-4.3-2.5-6-3m12 5v-3.5c0-1 .1-1.4-.5-2 2.8-.3 5.5-1.4 5.5-6a4.6 4.6 0 0 0-1.3-3.2 4.2 4.2 0 0 0-.1-3.2s-1.3-.4-4.1 1.6a13.4 13.4 0 0 0-7 0C4.6 3 3.3 3.4 3.3 3.4a4.2 4.2 0 0 0-.1 3.2A4.6 4.6 0 0 0 1.9 9.8c0 4.6 2.7 5.7 5.5 6-.6.6-.6 1.2-.5 2V21" />
-    </svg>
-  );
-}
-
 /* ------------------------------------------------------------------ */
-/* DATA — edit these objects to swap in real CV content              */
+/* DATA REPOSITORY                                                   */
 /* ------------------------------------------------------------------ */
 
-const PROJECTS = [
+const PROJECTS: ProjectData[] = [
   {
-    code: "MECH / AIR-01",
-    title: "Compressed Air Leak Detection",
+    id: 'compressed-air',
+    code: 'SYS-01 // PNEUMATICS',
+    title: 'Compressed Air Leak Detection & Reduction',
+    subtitle: 'Ultrasonic Acoustic Diagnostics & Energy Reclamation',
+    category: 'Fluid Mechanics & Industrial Auditing',
     icon: Wind,
-    description:
-      "Built an acoustic-sensor rig to locate leaks in a factory compressed-air network, cutting the manual audit time from a full day to under two hours.",
-    tools: ["Ultrasonic Sensors", "MATLAB", "SolidWorks"],
-    impact: "18% reduction in compressor energy waste",
+    summary:
+      'Engineered an ultrasonic acoustic detection protocol across a high-volume factory pneumatic network. Pinpointed hairline orifice leaks, minimized compressor cycling loss, and reduced system electrical consumption in full accordance with ISO 11011 compressed air auditing standards.',
+    metrics: [
+      { label: 'Energy Waste Cut', value: '23%', delta: '-23% kWh' },
+      { label: 'Audit Time Cycle', value: '<2.0 hrs', delta: '-75% time' },
+      { label: 'Line Pressure Delta', value: '7.2 → 6.1 BAR', delta: 'Nominal' },
+      { label: 'Projected Recovery', value: '£14,200/yr', delta: '+ROI' },
+    ],
+    tags: ['Acoustic Diagnostics', 'ISO 11011', 'MATLAB Spectrum', 'SolidWorks Pneumatics', 'Root Cause Analysis'],
+    specs: {
+      'Audit Standard': 'ISO 11011:2013 Compressed Air Energy Efficiency',
+      'Operating Line Pressure': '6.8 - 7.2 BAR (Peak Flow)',
+      'Ultrasonic Sensor Band': '38.4 kHz Center Bandwidth',
+      'Orifice Leak Range': '0.3mm — 2.4mm Hairline Fittings',
+      'Verification Method': 'Acoustic Decibel Log & Thermal Flow Metering',
+    },
+    methodology: [
+      'Pneumatic manifold mapping and high-frequency ultrasound acoustic scan across 450m of distribution piping.',
+      'Acoustic signal decibel parsing in MATLAB to separate background machinery noise from turbulent orifice discharge.',
+      'Quantitative CFM loss calculation using orifice flow formulas and enthalpy degradation curves.',
+      'Designed retrofit push-in safety couplings and scheduled preventative pressure monitoring regime.',
+    ],
+    outcomes: [
+      'Identified and eliminated 19 critical leakage nodes across pneumatic distribution manifolds.',
+      'Reduced air compressor unloaded running hours by 18.5%, significantly lowering motor thermal stress.',
+      'Documented complete compliance matrix meeting ISO 11011 factory energy audit protocols.',
+    ],
+    schematicType: 'pneumatic',
   },
   {
-    code: "MECH / GKT-02",
-    title: "Go-Kart — BFKCT",
-    icon: Gauge,
-    description:
-      "Led chassis and drivetrain design for a formula-style go-kart, from CAD modelling through to on-track testing with a five-person student team.",
-    tools: ["SolidWorks", "ANSYS", "Manual Lathe/Mill"],
-    impact: "0.4s lap-time gain after suspension redesign",
+    id: 'energy-efficiency',
+    code: 'SYS-02 // THERMAL & POWER',
+    title: 'Energy Efficiency Improvements in Small-Scale Industries',
+    subtitle: 'Thermal Balancing, Motor Optimization & Power Factor Correction',
+    category: 'Thermodynamics & Industrial Optimization',
+    icon: Factory,
+    summary:
+      'Conducted end-to-end industrial energy audits for small-to-medium manufacturing units. Formulated systemic interventions including inductive motor power factor correction, boiler waste-heat economizers, and thermal insulation jackets, unlocking rapid capital payback.',
+    metrics: [
+      { label: 'Thermal Loss Reduction', value: '31%', delta: '-31% therms' },
+      { label: 'Power Factor Lift', value: '0.76 → 0.94', delta: '+23.6%' },
+      { label: 'Peak Electrical Demand', value: '-18.5 kW', delta: 'Peak shaving' },
+      { label: 'CapEx Payback Window', value: '8.4 Months', delta: 'High ROI' },
+    ],
+    tags: ['Thermal Auditing', 'Power Factor (PF)', 'HVAC Balancing', 'Waste Heat Recovery', 'CapEx/OpEx Analysis'],
+    specs: {
+      'Audit Baseline': 'CIBSE TM22 Energy Assessment Protocols',
+      'Active Motor Load': '3-Phase 415V / 50Hz Induction Drives',
+      'Initial Power Factor': '0.76 Inductive Lagging',
+      'Optimized Power Factor': '0.94 Automatic Capacitor Switched',
+      'Waste Heat Recovery': 'Counter-Flow Shell & Tube Economizer',
+    },
+    methodology: [
+      'Comprehensive electrical telemetry and thermographic imaging of boiler steam jackets and inductive pumps.',
+      'Mass and energy balance formulation across processing vessels to identify major thermal enthalpy leaks.',
+      'Sizing and staging of automatic power factor correction (APFC) capacitor banks to eliminate utility penalties.',
+      'Engineering low-cost custom insulation blankets for steam manifolds, reducing radiant heat dissipation.',
+    ],
+    outcomes: [
+      'Eliminated monthly reactive power utility penalty surcharges through automated capacitor bank tuning.',
+      'Recovered 42 kW thermal equivalent through boiler feed-water preheating economizer retrofits.',
+      'Delivered structured compliance handbook for local factory shop-floor operators.',
+    ],
+    schematicType: 'energy',
   },
   {
-    code: "MECH / BIO-03",
-    title: "Biodiesel Blends",
-    icon: Droplets,
-    description:
-      "Investigated combustion performance of waste-cooking-oil biodiesel blends against standard diesel, benchmarking emissions and fuel efficiency.",
-    tools: ["Excel / Data Analysis", "Gas Chromatography", "Engine Test Rig"],
-    impact: "B20 blend matched diesel output at 12% lower emissions",
+    id: 'biodiesel-nano',
+    code: 'SYS-03 // COMBUSTION & MATERIALS',
+    title: 'Impact of TiO₂ and ZrO₂ Blends with Biodiesel',
+    subtitle: 'Nanoparticle Thermal Catalysis & Exhaust Abatement in CI Engines',
+    category: 'Alternative Fuels & Material Science',
+    icon: Flame,
+    summary:
+      'Investigated the thermo-physical and combustion kinetics of titanium dioxide (TiO₂) and zirconium dioxide (ZrO₂) nanoparticle additives blended into waste-cooking-oil biodiesel (B20). Verified significant improvements in brake thermal efficiency and marked reduction in toxic NOx/particulate emissions.',
+    metrics: [
+      { label: 'Brake Thermal Eff. (BTE)', value: '+8.2%', delta: '+8.2% output' },
+      { label: 'NOx Emission Delta', value: '-16.4%', delta: '-16.4% PPM' },
+      { label: 'Smoke Opacity Reduction', value: '-21.0%', delta: '-21% opacity' },
+      { label: 'Combustion Delay Period', value: '-1.8° CA', delta: 'Faster ignite' },
+    ],
+    tags: ['Nanomaterial Doping', 'TiO₂ / ZrO₂ Catalysts', 'IC Engine Testing', 'Gas Chromatography', 'Emissions Abatement'],
+    specs: {
+      'Base Fuel Matrix': 'B20 (20% Waste Cooking Oil Biodiesel + 80% Diesel)',
+      'Nanoparticle Doping Concentration': '50 ppm & 100 ppm Ultrasonic Dispersed',
+      'Average Particle Grain Size': '30 — 45 nm Spherical Crystallites',
+      'Test Rig Configuration': 'Single Cylinder 4-Stroke Direct Injection Diesel Rig',
+      'Instrumentation': 'Kistler Piezo Transducer & AVL Exhaust Gas Analyzer',
+    },
+    methodology: [
+      'High-energy ultrasonication (45 minutes, 40 kHz) using CTAB surfactant to ensure homogeneous nanoparticle suspension without sedimentation.',
+      'Experimental bench testing on variable-load compression ignition engine coupled to eddy current dynamometer.',
+      'Acquisition of cylinder pressure profiles, heat release rates (HRR), and ignition delay using high-speed DAQ.',
+      'Flue gas analysis for nitrogen oxides (NOx), carbon monoxide (CO), unburnt hydrocarbons (UHC), and smoke opacity.',
+    ],
+    outcomes: [
+      'Proved TiO₂ and ZrO₂ act as oxygen-donating micro-catalysts, enhancing secondary fuel droplet micro-explosions.',
+      'Attained superior peak cylinder pressures and reduced specific fuel consumption (SFC) across all loading states.',
+      'Published analytical dataset validating sustainable alternative fuel utilization for commercial compression engines.',
+    ],
+    schematicType: 'bio',
+  },
+  {
+    id: 'gokart-chassis',
+    code: 'SYS-04 // AUTOMOTIVE DYNAMICS',
+    title: 'Go-Kart Space-Frame Chassis & Drivetrain (BFKCT)',
+    subtitle: 'Chassis Torsional Rigidity, Ackermann Steering & Track Validation',
+    category: 'Automotive Design & Structural Simulation',
+    icon: Car,
+    summary:
+      'Led structural design, CAD modeling, and ANSYS FEA simulation for a competition go-kart entered into the national BFKCT championship. Optimized AISI 4130 chromoly tubular space-frame for high torsional stiffness, verified Ackermann steering geometry, and fabricated precision drivetrain mounts.',
+    metrics: [
+      { label: 'Torsional Stiffness', value: '1,250 Nm/°', delta: '+14% rigidity' },
+      { label: 'Total Kerb Mass', value: '84.0 kg', delta: 'Lightweight' },
+      { label: 'Corner Exit Lap Gain', value: '-0.42 s', delta: 'Track proven' },
+      { label: 'Safety Factor (FEA)', value: '2.85 FOS', delta: 'Von Mises Safe' },
+    ],
+    tags: ['SolidWorks CAD', 'ANSYS Mechanical FEA', 'AISI 4130 Chromoly', 'Ackermann Geometry', 'Machining & TIG Welding'],
+    specs: {
+      'Chassis Architecture': 'Tubular Space-Frame (AISI 4130 Seamless Steel)',
+      'Tube Dimensions': 'Ø32mm OD × 2.0mm Wall Thickness (Primary Members)',
+      'Wheelbase / Track Width': '1040mm / 1120mm (Front) & 1160mm (Rear)',
+      'Steering Kinematics': '100% Pro-Ackermann Geometry with 8° Kingpin Caster',
+      'FEA Loading Regimes': 'Frontal Impact (5G), Rear Impact (5G), Torsional Bending',
+    },
+    methodology: [
+      'Parametric 3D CAD modeling in SolidWorks factoring in driver ergonomic envelope, ballast limits, and engine clearances.',
+      'Finite Element Analysis (FEA) in ANSYS Mechanical under multiple dynamic impact loads and torsional roll simulations.',
+      'Manual fabrication incorporating CNC tube notching, custom jigging fixtures, and precision GTAW / TIG welding.',
+      'Telemetry-guided track testing with accelerometer logging to fine-tune caster, camber, and tire contact patches.',
+    ],
+    outcomes: [
+      'Achieved zero permanent chassis deformation after high-G track cornering and obstacle endurance trials.',
+      'Refined front-end steering geometry to eliminate understeer slip angles on tight technical hairpins.',
+      'Successfully steered team through rigorous technical scrutineering and dynamic safety inspections.',
+    ],
+    schematicType: 'kart',
   },
 ];
 
-const EXPERIENCE = [
+const WORK_HISTORY = [
   {
-    role: "Executive Administrative Assistant",
-    org: "Private Office",
-    period: "2023 — 2024",
+    role: "Online Shopper & Retail Assistant",
+    company: "Sainsbury's",
+    timeline: "Oct 2024 — Oct 2025",
+    location: "London, United Kingdom",
+    type: "Operations & Logistics Track",
+    icon: Briefcase,
+    badges: ["FIFO Stock Rotation", "Health & Safety Compliance", "Pick Velocity SLA", "Ergonomics"],
     points: [
-      "Managed scheduling, budgets, and reporting for senior leadership across three concurrent projects.",
-      "Built spreadsheet models to track spend against forecast, catching a 9% budget drift early.",
+      "Enforced rigorous First-In-First-Out (FIFO) inventory rotation across high-throughput fresh product categories, reducing inventory expiration write-offs and upholding HACCP compliance.",
+      "Consistently achieved top-tier fulfillment velocity (>185 units/hour) with a sustained 99.4% picking accuracy rate under intense peak-hour delivery deadlines.",
+      "Maintained zero-incident occupational health and safety (OHS) standards through proactive floor obstacle remediation and ergonomic manual handling protocols.",
+      "Identified and reported inventory barcode mapping discrepancies in the store warehouse management system, accelerating routing efficiency for the entire night team."
     ],
+    telemetry: {
+      metric1: "99.4% Pick Accuracy",
+      metric2: "185+ Units/Hr",
+      metric3: "Zero Safety Incidents"
+    }
   },
   {
     role: "Steward",
-    org: "Wembley Stadium",
-    period: "2021 — 2023",
+    company: "Gryphon (Wembley Stadium)",
+    timeline: "03/2024 — Present",
+    location: "London, United Kingdom",
+    type: "Safety & Crowd Dynamics Track",
+    icon: ShieldCheck,
+    badges: ["80,000+ Crowd Safety", "Choke-Point Control", "Emergency Egress", "High-Stress Judgement"],
     points: [
-      "Directed crowd flow for events of 80,000+ attendees, making rapid safety calls under pressure.",
-      "Trained and briefed incoming steward teams ahead of major fixtures.",
+      "Directed high-density crowd distribution, perimeter security, and emergency egress protocols across premier sports finals and stadium concerts accommodating 80,000+ attendees.",
+      "Executed rapid situational triage and conflict de-escalation under extreme acoustic and physical congestion, coordinating seamlessly with venue safety command.",
+      "Monitored turnstile throughput bottlenecks and regulated flow velocities to avert dynamic crush risks along high-gradient concourse stairwells.",
+      "Conducted pre-event stadium sweeps for safety compliance, verifying emergency fire exits, anti-panic hardware, and medical station accessibility."
+    ],
+    telemetry: {
+      metric1: "80,000+ Attendees",
+      metric2: "Green Guide Compliant",
+      metric3: "Rapid Evacuation Lead"
+    }
+  },
+  {
+    role: "Executive Administrative Assistant",
+    company: "Santosh University",
+    timeline: "07/2022 — 12/2023",
+    location: "Chennai, India",
+    type: "Data Analysis & Workflow Track",
+    icon: Database,
+    badges: ["Data Analytics", "Resource Scheduling", "Budget Drift Modeling", "Process Automation"],
+    points: [
+      "Engineered institutional data models and scheduling matrices across 12 faculties, optimizing lecture hall and lab equipment utilization by 22%.",
+      "Constructed dynamic spreadsheet financial models tracking expenditures against quarterly forecasts, successfully intercepting a 9% budget drift prior to fiscal year close.",
+      "Streamlined high-volume administrative document routing by consolidating cross-departmental filing workflows into standardized digital repositories.",
+      "Coordinated senior executive briefings, preparing analytical digests and statistical breakdowns on academic KPIs and operational overheads."
+    ],
+    telemetry: {
+      metric1: "-9% Budget Drift Intercepted",
+      metric2: "+22% Facility Utilization",
+      metric3: "12 Faculties Coordinated"
+    }
+  },
+  {
+    role: "Crew Member",
+    company: "KFC",
+    timeline: "01/2022 — 06/2022",
+    location: "Chennai, India",
+    type: "Process & Inventory Track",
+    icon: Factory,
+    badges: ["HACCP Compliance", "Inventory Velocity", "Cold-Chain Integrity", "Peak Throughput"],
+    points: [
+      "Maintained cold-chain integrity and precision temperature logs across raw protein storage in strict compliance with global HACCP and food safety regulations.",
+      "Coordinated daily inventory cycles, raw stock reconciliations, and perishable asset turnover to prevent material starvation during high-demand lunch/dinner peaks.",
+      "Adhered to systematic station sanitization schedules and monitored personal protective equipment (PPE) compliance across high-temperature fryers.",
+      "Trained onboarding team members on standardized operational checklists, line replenishment speed, and quality control checkpoints."
+    ],
+    telemetry: {
+      metric1: "100% HACCP Audit Pass",
+      metric2: "High-Volume FIFO",
+      metric3: "Line Velocity Maintained"
+    }
+  }
+];
+
+const SKILLS_MATRIX = [
+  {
+    category: "Data Analysis",
+    icon: Database,
+    code: "ANLYS-01",
+    score: 92,
+    summary: "Quantitative analysis of physical processes, acoustic signals, and operational metrics.",
+    items: [
+      { name: "Statistical Process Control (SPC)", level: 90 },
+      { name: "MATLAB & Acoustic Frequency Analysis", level: 88 },
+      { name: "Excel Advanced Financial Modeling", level: 94 },
+      { name: "Python Telemetry & Data Cleaning", level: 82 },
+      { name: "Weibull Failure & Reliability Analysis", level: 80 },
     ],
   },
   {
-    role: "Online Shopper",
-    org: "Retail Fulfilment",
-    period: "2020 — 2021",
-    points: [
-      "Hit accuracy and speed targets picking 200+ orders per shift during peak demand.",
-      "Flagged a stock-mapping error that was costing the store recurring pick-time losses.",
+    category: "Problem Solving",
+    icon: Crosshair,
+    code: "SOLVE-02",
+    score: 95,
+    summary: "Root-cause diagnostics, failure mode identification, and systemic engineering resolution.",
+    items: [
+      { name: "5-Why & Ishikawa / Fishbone Diagnostics", level: 96 },
+      { name: "Failure Mode and Effects Analysis (FMEA)", level: 90 },
+      { name: "8D Problem Solving Methodology", level: 88 },
+      { name: "Rapid Dynamic Triage under Pressure", level: 95 },
+      { name: "Engineering Design Trade-off Studies", level: 92 },
+    ],
+  },
+  {
+    category: "Time Management",
+    icon: Clock,
+    code: "TIME-03",
+    score: 91,
+    summary: "SLA compliance, critical path planning, and rapid throughput optimization.",
+    items: [
+      { name: "Critical Path Method (CPM) Planning", level: 90 },
+      { name: "Lean Kanban & Process Bottleneck Removal", level: 92 },
+      { name: "High-Throughput Logistics Velocity", level: 95 },
+      { name: "Multi-Workstream Sprint Scheduling", level: 88 },
+      { name: "Strict SLA Delivery & Milestone Tracking", level: 93 },
+    ],
+  },
+  {
+    category: "Financial Acumen",
+    icon: DollarSign,
+    code: "FIN-04",
+    score: 87,
+    summary: "Cost-benefit evaluation, CapEx/OpEx budgeting, and energy conservation ROI modeling.",
+    items: [
+      { name: "CapEx / OpEx Payback Modeling", level: 90 },
+      { name: "Energy Conservation Measure (ECM) ROI", level: 92 },
+      { name: "Budget Variance & Drift Detection", level: 88 },
+      { name: "Life Cycle Costing (LCC) for Equipment", level: 82 },
+      { name: "Procurement & Material Requisition Planning", level: 85 },
+    ],
+  },
+  {
+    category: "Teamwork",
+    icon: Users,
+    code: "TEAM-05",
+    score: 96,
+    summary: "Cross-functional leadership, safety stewardship, and multi-disciplinary alignment.",
+    items: [
+      { name: "High-Density Operations Stewardship", level: 98 },
+      { name: "Cross-Disciplinary Team Coordination", level: 94 },
+      { name: "Safety Briefings & Compliance Training", level: 92 },
+      { name: "Conflict De-escalation & Communication", level: 95 },
+      { name: "Collaborative Workshop & Jig Fabrication", level: 90 },
     ],
   },
 ];
 
-const TECH_SKILLS = [
-  { label: "Mechanical Design (SolidWorks / CAD)", level: 85 },
-  { label: "Data Analysis (Excel / MATLAB)", level: 80 },
-  { label: "FEA / Simulation (ANSYS)", level: 65 },
-  { label: "Manufacturing Processes", level: 70 },
-];
-
-const SOFT_SKILLS = [
-  "Problem Solving",
-  "Negotiation",
-  "Time Management",
-  "Financial Acumen",
-  "Team Leadership",
-  "Communication",
+const DOMAIN_ENGINEERING_TOOLS = [
+  { name: "SolidWorks CAD", tag: "3D Modeling & Assemblies", icon: Compass, spec: "Parametric Design, GD&T, 2D Drafting" },
+  { name: "ANSYS Mechanical", tag: "FEA Simulation", icon: Activity, spec: "Static Structural, Modal, von Mises Stress" },
+  { name: "Thermodynamics & Heat", tag: "Thermal Systems", icon: Flame, spec: "Heat Exchangers, Enthalpy Balance, HVAC" },
+  { name: "Fluid & Pneumatics", tag: "Fluid Dynamics", icon: Wind, spec: "Compressible Flow, ISO 11011, Pipe Sizing" },
+  { name: "Lean Six Sigma", tag: "Process Optimization", icon: Workflow, spec: "DMAIC, 5S, Kaizen, Waste Minimization" },
+  { name: "Workshop Machining", tag: "Fabrication", icon: Wrench, spec: "Manual Lathe, Milling, TIG Welded Jigs" },
 ];
 
 /* ------------------------------------------------------------------ */
-/* SUB-COMPONENTS                                                    */
+/* INTERACTIVE SCHEMATICS (SVG Blueprint Visuals)                      */
 /* ------------------------------------------------------------------ */
 
-export function SpotlightBasic() {
+function SchematicVisual({ type }: { type: 'pneumatic' | 'energy' | 'bio' | 'kart' }) {
+  if (type === 'pneumatic') {
+    return (
+      <div className="relative w-full h-44 bg-[#0a0d14] rounded-lg border border-white/10 p-3 overflow-hidden flex flex-col justify-between">
+        <div className="flex items-center justify-between text-[10px] font-mono-cad text-zinc-400">
+          <span className="flex items-center gap-1.5 text-[#ff5f15]">
+            <span className="inline-block w-2 h-2 rounded-full bg-[#ff5f15] animate-ping" />
+            ISO 11011 ACOUSTIC SPECTRUM
+          </span>
+          <span className="text-zinc-500">FREQ: 38.4 kHz // 7.2 BAR</span>
+        </div>
+        <div className="relative h-24 w-full flex items-center justify-center">
+          <svg className="w-full h-full" viewBox="0 0 360 90" fill="none">
+            <line x1="0" y1="45" x2="360" y2="45" stroke="rgba(255,255,255,0.08)" strokeDasharray="3 3" />
+            <line x1="180" y1="0" x2="180" y2="90" stroke="rgba(255,255,255,0.08)" strokeDasharray="3 3" />
+            <path
+              d="M0 45 Q 30 42 60 45 T 120 45 Q 140 44 150 42 Q 165 10 180 8 Q 195 10 210 42 Q 220 45 270 45 T 360 45"
+              stroke="#ff5f15"
+              strokeWidth="2"
+              fill="url(#pneumatic-grad)"
+            />
+            <circle cx="180" cy="12" r="4" fill="#ff5f15" className="animate-pulse" />
+            <line x1="180" y1="18" x2="180" y2="45" stroke="#ff5f15" strokeWidth="1" strokeDasharray="2 2" />
+            <text x="188" y="24" fill="#ff5f15" fontSize="9" fontFamily="monospace" fontWeight="bold">
+              ORIFICE LEAK (-23%)
+            </text>
+            <text x="10" y="80" fill="#94a3b8" fontSize="8" fontFamily="monospace">
+              HEADER PRESSURE: 7.2 BAR → 6.1 BAR (RESTORED)
+            </text>
+            <defs>
+              <linearGradient id="pneumatic-grad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#ff5f15" stopOpacity="0.3" />
+                <stop offset="100%" stopColor="#ff5f15" stopOpacity="0" />
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <div className="flex justify-between items-center text-[10px] font-mono-cad border-t border-white/5 pt-1.5 text-zinc-400">
+          <span>SAMPLING: 96 kS/s</span>
+          <span className="text-[#ff5f15] font-semibold">LEAK SEALED: COMPLETE</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (type === 'energy') {
+    return (
+      <div className="relative w-full h-44 bg-[#0a0d14] rounded-lg border border-white/10 p-3 overflow-hidden flex flex-col justify-between">
+        <div className="flex items-center justify-between text-[10px] font-mono-cad text-zinc-400">
+          <span className="flex items-center gap-1.5 text-[#facc15]">
+            <Gauge size={13} className="text-[#facc15]" />
+            POWER FACTOR & THERMAL AUDIT
+          </span>
+          <span className="text-zinc-500">PF: 0.76 → 0.94</span>
+        </div>
+        <div className="relative h-24 w-full flex items-center justify-around px-2">
+          <div className="flex flex-col items-center">
+            <svg width="70" height="50" viewBox="0 0 70 50">
+              <path d="M 10 45 A 25 25 0 0 1 60 45" stroke="#252d3d" strokeWidth="6" fill="none" strokeLinecap="round" />
+              <path d="M 10 45 A 25 25 0 0 1 54 23" stroke="#facc15" strokeWidth="6" fill="none" strokeLinecap="round" />
+              <circle cx="35" cy="45" r="4" fill="#facc15" />
+              <line x1="35" y1="45" x2="52" y2="25" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" />
+            </svg>
+            <span className="text-[10px] font-mono-cad text-[#facc15] font-bold">PF 0.94 (OPT)</span>
+          </div>
+          <div className="flex flex-col gap-1 text-[10px] font-mono-cad">
+            <div className="flex items-center justify-between gap-4">
+              <span className="text-zinc-400">Boiler Thermal Loss:</span>
+              <span className="text-emerald-400 font-semibold">-31%</span>
+            </div>
+            <div className="w-36 bg-zinc-800 h-1.5 rounded-full overflow-hidden">
+              <div className="bg-emerald-500 h-full w-[69%]" />
+            </div>
+            <div className="flex items-center justify-between gap-4 mt-1">
+              <span className="text-zinc-400">Peak Demand Shift:</span>
+              <span className="text-[#ff5f15] font-semibold">-18.5 kW</span>
+            </div>
+            <div className="w-36 bg-zinc-800 h-1.5 rounded-full overflow-hidden">
+              <div className="bg-[#ff5f15] h-full w-[82%]" />
+            </div>
+          </div>
+        </div>
+        <div className="flex justify-between items-center text-[10px] font-mono-cad border-t border-white/5 pt-1.5 text-zinc-400">
+          <span>APFC CAPACITOR STAGES: ACTIVE</span>
+          <span className="text-emerald-400 font-semibold">PAYBACK: 8.4 MOS</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (type === 'bio') {
+    return (
+      <div className="relative w-full h-44 bg-[#0a0d14] rounded-lg border border-white/10 p-3 overflow-hidden flex flex-col justify-between">
+        <div className="flex items-center justify-between text-[10px] font-mono-cad text-zinc-400">
+          <span className="flex items-center gap-1.5 text-[#ff5f15]">
+            <Flame size={13} className="text-[#ff5f15]" />
+            NANO-CATALYST EMISSIONS ABATEMENT
+          </span>
+          <span className="text-zinc-500">B20 + TiO₂ / ZrO₂</span>
+        </div>
+        <div className="relative h-24 w-full flex items-center justify-between px-2">
+          <div className="w-full space-y-2 text-[10px] font-mono-cad">
+            <div>
+              <div className="flex justify-between mb-0.5">
+                <span className="text-zinc-400">Brake Thermal Efficiency (BTE)</span>
+                <span className="text-emerald-400 font-bold">+8.2%</span>
+              </div>
+              <div className="w-full bg-zinc-800 h-2 rounded-full overflow-hidden flex">
+                <div className="bg-emerald-500 h-full w-[78%]" />
+              </div>
+            </div>
+            <div>
+              <div className="flex justify-between mb-0.5">
+                <span className="text-zinc-400">NOx Exhaust Concentration</span>
+                <span className="text-[#ff5f15] font-bold">-16.4%</span>
+              </div>
+              <div className="w-full bg-zinc-800 h-2 rounded-full overflow-hidden flex">
+                <div className="bg-[#ff5f15] h-full w-[45%]" />
+              </div>
+            </div>
+            <div>
+              <div className="flex justify-between mb-0.5">
+                <span className="text-zinc-400">Smoke Opacity / Particulate</span>
+                <span className="text-sky-400 font-bold">-21.0%</span>
+              </div>
+              <div className="w-full bg-zinc-800 h-2 rounded-full overflow-hidden flex">
+                <div className="bg-sky-500 h-full w-[40%]" />
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="flex justify-between items-center text-[10px] font-mono-cad border-t border-white/5 pt-1.5 text-zinc-400">
+          <span>PARTICLE GRAIN: 35nm</span>
+          <span className="text-[#ff5f15] font-semibold">HOMOGENEOUS DISPERSION</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className='relative aspect-video h-50 rounded-sm border border-zinc-100 bg-white dark:border-zinc-800 dark:bg-black overflow-hidden'>
-      <Spotlight
-        className='bg-zinc-700 blur-2xl'
-        size={64}
-        springOptions={{
-          bounce: 0.3,
-          duration: 0.1,
-        }}
-      />
-      <div className='absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-sm bg-white p-2 dark:bg-black pointer-events-none z-10'>
-        <svg
-          role='img'
-          xmlns='http://www.w3.org/2000/svg'
-          viewBox='0 0 70 70'
-          aria-label='MP Logo'
-          width='70'
-          height='70'
-          className='h-8 w-auto stroke-black dark:stroke-white'
-          fill='none'
-        >
-          <path
-            stroke='currentColor'
-            strokeLinecap='round'
-            strokeLinejoin='round'
-            strokeWidth='3'
-            d='M51.883 26.495c-7.277-4.124-18.08-7.004-26.519-7.425-2.357-.118-4.407-.244-6.364 1.06M59.642 51c-10.47-7.25-26.594-13.426-39.514-15.664-3.61-.625-6.744-1.202-9.991.263'
-          ></path>
+    <div className="relative w-full h-44 bg-[#0a0d14] rounded-lg border border-white/10 p-3 overflow-hidden flex flex-col justify-between">
+      <div className="flex items-center justify-between text-[10px] font-mono-cad text-zinc-400">
+        <span className="flex items-center gap-1.5 text-[#ff5f15]">
+          <Car size={13} className="text-[#ff5f15]" />
+          BFKCT CHASSIS FEA VON MISES STRESS
+        </span>
+        <span className="text-zinc-500">AISI 4130 CHROMOLY</span>
+      </div>
+      <div className="relative h-24 w-full flex items-center justify-center">
+        <svg viewBox="0 0 340 85" className="w-full h-full" fill="none">
+          <line x1="30" y1="55" x2="310" y2="55" stroke="#ff5f15" strokeWidth="2.5" />
+          <line x1="60" y1="30" x2="280" y2="30" stroke="#94a3b8" strokeWidth="1.5" />
+          <line x1="60" y1="30" x2="30" y2="55" stroke="#ff5f15" strokeWidth="2" />
+          <line x1="280" y1="30" x2="310" y2="55" stroke="#ff5f15" strokeWidth="2" />
+          <line x1="140" y1="30" x2="140" y2="55" stroke="#94a3b8" strokeWidth="1.5" />
+          <line x1="210" y1="30" x2="210" y2="55" stroke="#94a3b8" strokeWidth="1.5" />
+          <line x1="140" y1="55" x2="210" y2="30" stroke="#ff5f15" strokeWidth="1" strokeDasharray="3 2" />
+          <rect x="18" y="44" width="16" height="22" rx="3" stroke="#ffffff" strokeWidth="1.5" fill="#121620" />
+          <rect x="306" y="44" width="16" height="22" rx="3" stroke="#ffffff" strokeWidth="1.5" fill="#121620" />
+          <circle cx="140" cy="55" r="5" fill="#ff5f15" className="animate-ping" />
+          <circle cx="140" cy="55" r="3" fill="#ffffff" />
+          <text x="150" y="70" fill="#ff5f15" fontSize="8" fontFamily="monospace" fontWeight="bold">
+            VON MISES: 168 MPa (FOS 2.85)
+          </text>
+          <text x="70" y="22" fill="#94a3b8" fontSize="8" fontFamily="monospace">
+            WHEELBASE: 1040mm // RIGIDITY: 1250 Nm/°
+          </text>
         </svg>
+      </div>
+      <div className="flex justify-between items-center text-[10px] font-mono-cad border-t border-white/5 pt-1.5 text-zinc-400">
+        <span>STEERING: 100% ACKERMANN</span>
+        <span className="text-[#ff5f15] font-semibold">TRACK TESTED: PASSED</span>
       </div>
     </div>
   );
 }
 
 /* ------------------------------------------------------------------ */
-/* MAIN PORTFOLIO COMPONENT                                          */
+/* MAIN COMPONENT: DEVELOPER PORTFOLIO FOR DHARANI KUMAR SUBBAN       */
 /* ------------------------------------------------------------------ */
 
-interface FormState {
-  name: string;
-  email: string;
-  message: string;
-}
+export default function MechanicalEngineerPortfolio() {
+  const [isBuilding, setIsBuilding] = useState<boolean>(true);
+  const [selectedProject, setSelectedProject] = useState<ProjectData | null>(null);
+  const [activeSkillCategory, setActiveSkillCategory] = useState<string>('Data Analysis');
+  const [currentTime, setCurrentTime] = useState<string>('');
+  const [copiedEmail, setCopiedEmail] = useState<boolean>(false);
+  const [formStatus, setFormStatus] = useState<'idle' | 'transmitting' | 'sent'>('idle');
+  const [formData, setFormData] = useState({ name: '', email: '', subject: '', message: '' });
 
-export default function Portfolio() {
-  const [formState, setFormState] = useState<FormState>({ name: "", email: "", message: "" });
-  const [sent, setSent] = useState(false);
+  // 1. CUSTOM WRENCH CURSOR (Framer Motion with physics spring)
+  const cursorX = useMotionValue(-100);
+  const cursorY = useMotionValue(-100);
+  const springConfig = { damping: 28, stiffness: 450, mass: 0.4 };
+  const smoothX = useSpring(cursorX, springConfig);
+  const smoothY = useSpring(cursorY, springConfig);
+  const [isCursorHovered, setIsCursorHovered] = useState<boolean>(false);
+  const [isCursorVisible, setIsCursorVisible] = useState<boolean>(false);
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      cursorX.set(e.clientX);
+      cursorY.set(e.clientY);
+      if (!isCursorVisible) setIsCursorVisible(true);
+
+      const target = e.target as HTMLElement | null;
+      if (target) {
+        const interactive = target.closest(
+          'a, button, [role="button"], input, textarea, select, .laser-border-glow, .group, .cursor-pointer'
+        );
+        setIsCursorHovered(!!interactive);
+      }
+    };
+
+    const handleMouseLeave = () => setIsCursorVisible(false);
+
+    window.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseleave', handleMouseLeave);
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseleave', handleMouseLeave);
+    };
+  }, [cursorX, cursorY, isCursorVisible]);
+
+  // 2. GEAR-DRIVEN SCROLL PROGRESS INDICATOR
+  const { scrollYProgress } = useScroll();
+  const gearRotation = useTransform(scrollYProgress, [0, 1], [0, 720]);
+  const counterGearRotation = useTransform(scrollYProgress, [0, 1], [0, -1440]);
+  const [scrollPct, setScrollPct] = useState<number>(0);
+
+  useEffect(() => {
+    return scrollYProgress.on('change', (latest) => {
+      setScrollPct(Math.round(latest * 100));
+    });
+  }, [scrollYProgress]);
+
+  // 3. MECHANICAL PARALLAX ON BENTO SECTION
+  const bentoRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress: bentoScrollProgress } = useScroll({
+    target: bentoRef,
+    offset: ['start end', 'end start'],
+  });
+
+  const bentoIconParallax = useTransform(bentoScrollProgress, [0, 1], [-25, 25]);
+  const bentoBadgeParallax = useTransform(bentoScrollProgress, [0, 1], [20, -20]);
+  const bentoGearParallax = useTransform(bentoScrollProgress, [0, 1], [0, 120]);
+
+  // Digital industrial clock readout
+  useEffect(() => {
+    const updateTime = () => {
+      const now = new Date();
+      setCurrentTime(
+        now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) + ' UTC'
+      );
+    };
+    updateTime();
+    const timer = setInterval(updateTime, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const handleCopyEmail = () => {
+    navigator.clipboard.writeText('dharani.subban@engineering-mech.co.uk');
+    setCopiedEmail(true);
+    setTimeout(() => setCopiedEmail(false), 2500);
+  };
+
+  const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setSent(true);
+    setFormStatus('transmitting');
+    setTimeout(() => {
+      setFormStatus('sent');
+      setTimeout(() => {
+        setFormData({ name: '', email: '', subject: '', message: '' });
+        setFormStatus('idle');
+      }, 4000);
+    }, 1200);
+  };
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
-    <div className="pf-root">
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+    <>
+      {/* ------------------------------------------------------------ */}
+      {/* 0. GLOBAL GATEKEEPER "SWARM REBUILD" PRELOADER               */}
+      {/* ------------------------------------------------------------ */}
+      <AnimatePresence mode="wait">
+        {isBuilding && (
+          <SwarmPreloader onComplete={() => setIsBuilding(false)} />
+        )}
+      </AnimatePresence>
 
-        .pf-root {
-          --navy: #0B1220;
-          --navy-soft: #131B2E;
-          --slate-900: #1E293B;
-          --slate-700: #334155;
-          --slate-500: #64748B;
-          --slate-300: #CBD5E1;
-          --slate-100: #F1F5F9;
-          --off-white: #F8FAFC;
-          --white: #FFFFFF;
-          --orange: #F97316;
-          --orange-dark: #EA580C;
-          --line: #E2E8F0;
-          font-family: 'Inter', sans-serif;
-          color: var(--slate-900);
-          background: var(--off-white);
-          line-height: 1.5;
-        }
-        .pf-root * { box-sizing: border-box; }
-        .pf-mono { font-family: 'JetBrains Mono', monospace; }
+      {/* ------------------------------------------------------------ */}
+      {/* MAIN PORTFOLIO APPLICATION (Strictly gated until !isBuilding)*/}
+      {/* ------------------------------------------------------------ */}
+      {!isBuilding && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+          className="min-h-screen bg-[#080a0f] text-[#f1f5f9] selection:bg-[#ff5f15] selection:text-black relative md:cursor-none overflow-x-hidden"
+        >
+          {/* ------------------------------------------------------------ */}
+          {/* 1. CUSTOM MECHANICAL WRENCH CURSOR                           */}
+          {/* ------------------------------------------------------------ */}
+          <motion.div
+            className="fixed top-0 left-0 pointer-events-none z-[9999] hidden md:block"
+          style={{
+            x: smoothX,
+            y: smoothY,
+            translateX: '-35%',
+            translateY: '-35%',
+            opacity: isCursorVisible ? 1 : 0,
+          }}
+        >
+          <motion.div
+            animate={{
+              rotate: isCursorHovered ? 45 : 0,
+              scale: isCursorHovered ? 1.35 : 1,
+            }}
+            transition={{ type: 'spring', damping: 18, stiffness: 350 }}
+            className={`relative flex items-center justify-center p-2 rounded-full transition-colors ${
+              isCursorHovered
+                ? 'text-[#ff5f15] drop-shadow-[0_0_14px_rgba(255,95,21,0.9)]'
+                : 'text-zinc-300 drop-shadow-[0_0_6px_rgba(255,255,255,0.4)]'
+            }`}
+          >
+            {/* Laser sight center dot */}
+            <span
+              className={`absolute w-1.5 h-1.5 rounded-full transition-all ${
+                isCursorHovered ? 'bg-[#ff5f15] shadow-[0_0_8px_#ff5f15] scale-125' : 'bg-white/80'
+              }`}
+            />
+            <Wrench size={isCursorHovered ? 26 : 22} className="stroke-[2.5]" />
 
-        a { color: inherit; text-decoration: none; }
-        button { font-family: inherit; cursor: pointer; }
+            {/* Micro CAD coordinate crosshair */}
+            <span
+              className={`absolute -top-1 -right-1 font-mono-cad text-[8px] font-bold tracking-tighter ${
+                isCursorHovered ? 'text-[#ff5f15]' : 'text-zinc-500'
+              }`}
+            >
+              {isCursorHovered ? 'LOCK' : 'ENG'}
+            </span>
+          </motion.div>
+        </motion.div>
 
-        .pf-section {
-          padding: 96px 8vw;
-          max-width: 1280px;
-          margin: 0 auto;
-        }
-        @media (max-width: 720px) {
-          .pf-section { padding: 64px 6vw; }
-        }
+        {/* ------------------------------------------------------------ */}
+        {/* 2. GEAR-DRIVEN SCROLL PROGRESS INDICATOR (Bottom Right)      */}
+        {/* ------------------------------------------------------------ */}
+        <div className="fixed bottom-6 right-6 z-40 flex flex-col items-center">
+        <motion.div
+          onClick={scrollToTop}
+          title="Scroll Telemetry & Return to Top"
+          whileHover={{ scale: 1.08 }}
+          whileTap={{ scale: 0.94 }}
+          className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-[#0d1017] border-2 border-white/20 hover:border-[#ff5f15] flex items-center justify-center cursor-pointer shadow-[0_0_25px_rgba(0,0,0,0.8)] hover:shadow-[0_0_20px_rgba(255,95,21,0.5)] transition-all group overflow-hidden"
+        >
+          {/* Machined metal disc texture */}
+          <div className="absolute inset-0 bg-radial from-[#151a24] via-[#0d1017] to-[#050608] opacity-90" />
 
-        .pf-eyebrow {
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 12px;
-          letter-spacing: 0.14em;
-          text-transform: uppercase;
-          color: var(--orange);
-          font-weight: 600;
-          margin-bottom: 14px;
-          display: flex;
-          align-items: center;
-          gap: 10px;
-        }
-        .pf-eyebrow::before {
-          content: '';
-          width: 22px;
-          height: 1px;
-          background: var(--orange);
-          display: inline-block;
-        }
+          {/* Calibrated perimeter tick markings */}
+          <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="46" stroke="#252d3d" strokeWidth="1.5" strokeDasharray="3 3" fill="none" />
+            <circle
+              cx="50"
+              cy="50"
+              r="46"
+              stroke="#ff5f15"
+              strokeWidth="2"
+              strokeDasharray="290"
+              strokeDashoffset={290 - (290 * scrollPct) / 100}
+              strokeLinecap="round"
+              fill="none"
+              className="transition-[stroke-dashoffset] duration-150"
+            />
+          </svg>
 
-        .pf-h2 {
-          font-size: clamp(28px, 3.4vw, 40px);
-          font-weight: 800;
-          letter-spacing: -0.01em;
-          margin: 0 0 18px 0;
-        }
+          {/* Main Rotating Mechanical Cog / Gear */}
+          <motion.div
+            style={{ rotate: gearRotation }}
+            className="relative z-10 text-[#ff5f15] group-hover:text-[#ff7a38] transition-colors"
+          >
+            <Cog size={30} className="stroke-[2.2]" />
+          </motion.div>
 
-        /* ---------- NAV ---------- */
-        .pf-nav {
-          position: sticky;
-          top: 0;
-          z-index: 50;
-          background: rgba(11, 18, 32, 0.92);
-          backdrop-filter: blur(6px);
-          border-bottom: 1px solid rgba(255,255,255,0.08);
-        }
-        .pf-nav-inner {
-          max-width: 1280px;
-          margin: 0 auto;
-          padding: 18px 8vw;
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-        }
-        .pf-logo {
-          color: var(--white);
-          font-weight: 700;
-          font-size: 16px;
-          letter-spacing: 0.02em;
-        }
-        .pf-logo span { color: var(--orange); }
-        .pf-nav-links {
-          display: flex;
-          gap: 32px;
-          font-size: 14px;
-          font-weight: 500;
-        }
-        .pf-nav-links a { color: var(--slate-300); transition: color .15s ease; }
-        .pf-nav-links a:hover { color: var(--white); }
-        @media (max-width: 720px) {
-          .pf-nav-links { display: none; }
-        }
+          {/* Secondary intermeshing counter-pinion gear */}
+          <motion.div
+            style={{ rotate: counterGearRotation }}
+            className="absolute top-1.5 right-1.5 z-10 text-[#facc15] opacity-80"
+          >
+            <Settings size={14} className="stroke-[2]" />
+          </motion.div>
 
-        /* ---------- HERO ---------- */
-        .pf-hero {
-          position: relative;
-          background: var(--navy);
-          color: var(--white);
-          overflow: hidden;
-        }
-        .pf-hero-grid {
-          position: absolute;
-          inset: 0;
-          background-image:
-            linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px);
-          background-size: 44px 44px;
-          mask-image: radial-gradient(circle at 70% 30%, black 0%, transparent 70%);
-        }
-        .pf-hero-inner {
-          position: relative;
-          max-width: 1280px;
-          margin: 0 auto;
-          padding: 120px 8vw 110px;
-          display: grid;
-          grid-template-columns: 1.1fr 0.9fr;
-          gap: 48px;
-          align-items: center;
-        }
-        @media (max-width: 860px) {
-          .pf-hero-inner { grid-template-columns: 1fr; padding: 90px 6vw 70px; }
-        }
-        .pf-hero h1 {
-          font-size: clamp(34px, 5vw, 56px);
-          font-weight: 800;
-          line-height: 1.08;
-          letter-spacing: -0.02em;
-          margin: 0 0 22px 0;
-        }
-        .pf-hero h1 em {
-          font-style: normal;
-          color: var(--orange);
-        }
-        .pf-hero p {
-          font-size: 18px;
-          color: var(--slate-300);
-          max-width: 480px;
-          margin: 0 0 36px 0;
-        }
-        .pf-cta-row { display: flex; gap: 16px; flex-wrap: wrap; }
+          {/* Center hover arrow */}
+          <div className="absolute inset-0 z-20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-[#080a0f]/80 backdrop-blur-xs text-[#ff5f15]">
+            <ArrowUp size={18} className="stroke-[3] -translate-y-0.5" />
+          </div>
+        </motion.div>
 
-        .pf-btn-primary {
-          background: var(--orange);
-          color: var(--navy);
-          font-weight: 700;
-          font-size: 15px;
-          border: none;
-          border-radius: 6px;
-          padding: 14px 26px;
-          display: inline-flex;
-          align-items: center;
-          gap: 10px;
-          transition: background .15s ease, transform .15s ease;
-        }
-        .pf-btn-primary:hover { background: var(--orange-dark); transform: translateY(-1px); }
-
-        .pf-btn-secondary {
-          background: transparent;
-          color: var(--white);
-          font-weight: 600;
-          font-size: 15px;
-          border: 1px solid rgba(255,255,255,0.28);
-          border-radius: 6px;
-          padding: 14px 26px;
-          display: inline-flex;
-          align-items: center;
-          gap: 10px;
-          transition: border-color .15s ease, background .15s ease;
-        }
-        .pf-btn-secondary:hover { border-color: var(--orange); background: rgba(249,115,22,0.08); }
-
-        /* Hero schematic */
-        .pf-schematic {
-          position: relative;
-          border: 1px solid rgba(255,255,255,0.14);
-          border-radius: 10px;
-          padding: 28px;
-          background: rgba(255,255,255,0.03);
-        }
-        .pf-schematic-tag {
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 11px;
-          color: var(--slate-500);
-          letter-spacing: 0.08em;
-          margin-bottom: 16px;
-        }
-        .pf-schematic svg { width: 100%; height: auto; display: block; }
-
-        /* ---------- ABOUT ---------- */
-        .pf-about-grid {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 64px;
-          align-items: start;
-        }
-        @media (max-width: 860px) {
-          .pf-about-grid { grid-template-columns: 1fr; gap: 40px; }
-        }
-        .pf-about-text p {
-          color: var(--slate-700);
-          font-size: 16px;
-          margin: 0 0 16px 0;
-        }
-        .pf-path {
-          display: flex;
-          flex-direction: column;
-          gap: 0;
-        }
-        .pf-path-node {
-          display: flex;
-          gap: 18px;
-          padding-bottom: 30px;
-          position: relative;
-        }
-        .pf-path-node:not(:last-child)::before {
-          content: '';
-          position: absolute;
-          left: 9px;
-          top: 22px;
-          bottom: -2px;
-          width: 2px;
-          background: var(--line);
-        }
-        .pf-path-dot {
-          width: 20px;
-          height: 20px;
-          min-width: 20px;
-          border-radius: 50%;
-          border: 2px solid var(--slate-300);
-          background: var(--white);
-          margin-top: 2px;
-        }
-        .pf-path-node.pf-final .pf-path-dot {
-          border-color: var(--orange);
-          background: var(--orange);
-        }
-        .pf-path-label-title {
-          font-weight: 700;
-          font-size: 15px;
-          color: var(--slate-900);
-        }
-        .pf-path-label-sub {
-          font-size: 13px;
-          color: var(--slate-500);
-        }
-
-        /* ---------- PROJECTS ---------- */
-        .pf-projects-grid {
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 24px;
-        }
-        @media (max-width: 960px) {
-          .pf-projects-grid { grid-template-columns: 1fr; }
-        }
-        .pf-card {
-          background: var(--white);
-          border: 1px solid var(--line);
-          border-radius: 10px;
-          padding: 26px;
-          display: flex;
-          flex-direction: column;
-          gap: 16px;
-          transition: box-shadow .18s ease, transform .18s ease;
-        }
-        .pf-card:hover {
-          box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
-          transform: translateY(-3px);
-        }
-        .pf-card-top {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-        }
-        .pf-card-icon {
-          width: 40px;
-          height: 40px;
-          border-radius: 8px;
-          background: var(--navy);
-          color: var(--orange);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-        .pf-card-code {
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 11px;
-          color: var(--slate-500);
-          letter-spacing: 0.06em;
-        }
-        .pf-card h3 {
-          font-size: 18px;
-          font-weight: 700;
-          margin: 0;
-          color: var(--slate-900);
-        }
-        .pf-card p.pf-desc {
-          font-size: 14px;
-          color: var(--slate-700);
-          margin: 0;
-        }
-        .pf-tools {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 6px;
-        }
-        .pf-tool-pill {
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 11px;
-          background: var(--slate-100);
-          color: var(--slate-700);
-          padding: 4px 9px;
-          border-radius: 4px;
-        }
-        .pf-impact {
-          border-top: 1px dashed var(--line);
-          padding-top: 14px;
-          font-size: 13px;
-          color: var(--navy);
-          font-weight: 600;
-        }
-        .pf-impact span { color: var(--orange); font-family: 'JetBrains Mono', monospace; font-weight: 600; }
-
-        /* ---------- EXPERIENCE ---------- */
-        .pf-timeline {
-          position: relative;
-          padding-left: 32px;
-        }
-        .pf-timeline::before {
-          content: '';
-          position: absolute;
-          left: 6px;
-          top: 6px;
-          bottom: 6px;
-          width: 2px;
-          background: var(--line);
-        }
-        .pf-tl-item {
-          position: relative;
-          padding-bottom: 44px;
-        }
-        .pf-tl-item:last-child { padding-bottom: 0; }
-        .pf-tl-dot {
-          position: absolute;
-          left: -32px;
-          top: 4px;
-          width: 14px;
-          height: 14px;
-          border-radius: 50%;
-          background: var(--navy);
-          border: 3px solid var(--orange);
-        }
-        .pf-tl-head {
-          display: flex;
-          justify-content: space-between;
-          align-items: baseline;
-          flex-wrap: wrap;
-          gap: 8px;
-          margin-bottom: 6px;
-        }
-        .pf-tl-role { font-size: 17px; font-weight: 700; color: var(--slate-900); }
-        .pf-tl-org { font-size: 14px; color: var(--orange-dark); font-weight: 600; margin-left: 8px; }
-        .pf-tl-period {
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 12px;
-          color: var(--slate-500);
-        }
-        .pf-tl-item ul {
-          margin: 8px 0 0 0;
-          padding-left: 18px;
-          color: var(--slate-700);
-          font-size: 14px;
-        }
-        .pf-tl-item li { margin-bottom: 6px; }
-
-        /* ---------- SKILLS ---------- */
-        .pf-skills-grid {
-          display: grid;
-          grid-template-columns: 1.1fr 0.9fr;
-          gap: 56px;
-        }
-        @media (max-width: 860px) {
-          .pf-skills-grid { grid-template-columns: 1fr; gap: 40px; }
-        }
-        .pf-skills-subhead {
-          font-size: 13px;
-          font-weight: 700;
-          text-transform: uppercase;
-          letter-spacing: 0.08em;
-          color: var(--slate-500);
-          margin-bottom: 20px;
-        }
-        .pf-bar-row { margin-bottom: 18px; }
-        .pf-bar-label {
-          display: flex;
-          justify-content: space-between;
-          font-size: 14px;
-          font-weight: 600;
-          color: var(--slate-900);
-          margin-bottom: 6px;
-        }
-        .pf-bar-label span.pf-bar-pct {
-          font-family: 'JetBrains Mono', monospace;
-          color: var(--slate-500);
-          font-weight: 500;
-        }
-        .pf-bar-track {
-          height: 8px;
-          border-radius: 4px;
-          background: var(--slate-100);
-          overflow: hidden;
-        }
-        .pf-bar-fill {
-          height: 100%;
-          background: linear-gradient(90deg, var(--navy), var(--orange));
-          border-radius: 4px;
-        }
-        .pf-tags { display: flex; flex-wrap: wrap; gap: 10px; }
-        .pf-tag {
-          border: 1px solid var(--line);
-          background: var(--white);
-          color: var(--slate-700);
-          font-size: 13px;
-          font-weight: 600;
-          padding: 9px 16px;
-          border-radius: 20px;
-        }
-
-        /* ---------- FOOTER / CONTACT ---------- */
-        .pf-footer {
-          background: var(--navy);
-          color: var(--white);
-        }
-        .pf-footer-grid {
-          display: grid;
-          grid-template-columns: 0.9fr 1.1fr;
-          gap: 56px;
-          margin-bottom: 48px;
-        }
-        @media (max-width: 860px) {
-          .pf-footer-grid { grid-template-columns: 1fr; gap: 40px; }
-        }
-        .pf-footer h2 { color: var(--white); }
-        .pf-footer p.pf-lede { color: var(--slate-300); font-size: 15px; max-width: 400px; }
-        .pf-contact-list { margin-top: 28px; display: flex; flex-direction: column; gap: 14px; }
-        .pf-contact-item {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          font-size: 14px;
-          color: var(--slate-300);
-        }
-        .pf-contact-item svg { color: var(--orange); flex-shrink: 0; }
-        .pf-social-row { display: flex; gap: 12px; margin-top: 24px; }
-        .pf-social-btn {
-          width: 40px; height: 40px;
-          border-radius: 8px;
-          border: 1px solid rgba(255,255,255,0.16);
-          display: flex; align-items: center; justify-content: center;
-          transition: border-color .15s ease, background .15s ease;
-        }
-        .pf-social-btn:hover { border-color: var(--orange); background: rgba(249,115,22,0.1); }
-
-        .pf-form { display: flex; flex-direction: column; gap: 16px; }
-        .pf-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-        @media (max-width: 520px) { .pf-form-row { grid-template-columns: 1fr; } }
-        .pf-form label {
-          font-size: 12px;
-          font-family: 'JetBrains Mono', monospace;
-          letter-spacing: 0.06em;
-          color: var(--slate-500);
-          text-transform: uppercase;
-          display: block;
-          margin-bottom: 6px;
-        }
-        .pf-form input, .pf-form textarea {
-          width: 100%;
-          background: var(--navy-soft);
-          border: 1px solid rgba(255,255,255,0.14);
-          border-radius: 6px;
-          padding: 12px 14px;
-          color: var(--white);
-          font-family: 'Inter', sans-serif;
-          font-size: 14px;
-          resize: vertical;
-        }
-        .pf-form input::placeholder, .pf-form textarea::placeholder { color: var(--slate-500); }
-        .pf-form input:focus, .pf-form textarea:focus {
-          outline: none;
-          border-color: var(--orange);
-        }
-        .pf-form-submit {
-          align-self: flex-start;
-          margin-top: 4px;
-        }
-        .pf-sent-note {
-          font-size: 13px;
-          color: var(--orange);
-          font-family: 'JetBrains Mono', monospace;
-        }
-        .pf-bottom-bar {
-          border-top: 1px solid rgba(255,255,255,0.1);
-          padding: 22px 8vw;
-          max-width: 1280px;
-          margin: 0 auto;
-          display: flex;
-          justify-content: space-between;
-          flex-wrap: wrap;
-          gap: 10px;
-          font-size: 13px;
-          color: var(--slate-500);
-        }
-        .pf-showcase-wrapper {
-          max-width: 1280px;
-          margin: 0 auto 48px;
-          padding: 0 8vw;
-        }
-      `}</style>
-
-      {/* NAV */}
-      <nav className="pf-nav">
-        <div className="pf-nav-inner">
-          <div className="pf-logo">J. WHITFIELD <span>/ MECH ENG</span></div>
-          <div className="pf-nav-links">
-            <a href="#about">About</a>
-            <a href="#projects">Projects</a>
-            <a href="#experience">Experience</a>
-            <a href="#skills">Skills</a>
-            <a href="#contact">Contact</a>
+          <div className="mt-1.5 px-2 py-0.5 rounded bg-[#0d1017] border border-white/10 text-[10px] font-mono-cad text-zinc-300 font-bold flex items-center gap-1 shadow-md">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#ff5f15] animate-pulse" />
+            <span>{scrollPct}%</span>
+            <span className="text-zinc-600">CAD</span>
           </div>
         </div>
-      </nav>
 
-      {/* HERO */}
-      <header className="pf-hero">
-        <div className="pf-hero-grid" />
-        <div className="pf-hero-inner">
-          <div>
-            <div className="pf-eyebrow">Mechanical Engineering · M.S. Candidate, London</div>
-            <h1>
-              Mechanical Engineer &amp; <em>Versatile</em> Operations Professional
-            </h1>
-            <p>
-              I bring engineering rigour and cross-industry adaptability together —
-              built through roles spanning stadium operations, administration, and
-              retail before turning fully toward mechanical design and analysis.
-            </p>
-            <div className="pf-cta-row">
-              <button className="pf-btn-primary">
-                <Download size={18} /> Download Resume
-              </button>
-              <a href="#projects">
-                <button className="pf-btn-secondary">
-                  View Projects <ArrowRight size={16} />
-                </button>
-              </a>
-            </div>
+        {/* Background CAD grid */}
+        <div className="fixed inset-0 bg-cad-grid pointer-events-none opacity-40 z-0" />
+        <div className="fixed inset-0 bg-gradient-to-b from-transparent via-[#080a0f]/80 to-[#080a0f] pointer-events-none z-0" />
+
+        {/* ------------------------------------------------------------ */}
+        {/* TOP SYSTEM STATUS BAR & NAVIGATION                           */}
+        {/* ------------------------------------------------------------ */}
+        <header className="sticky top-0 z-40 w-full backdrop-blur-md bg-[#080a0f]/90 border-b border-white/10">
+        <div className="hidden md:flex items-center justify-between px-6 py-1 bg-[#050608] border-b border-white/5 text-[11px] font-mono-cad text-zinc-400">
+          <div className="flex items-center gap-4">
+            <span className="flex items-center gap-1.5 text-zinc-300">
+              <span className="w-2 h-2 rounded-full bg-[#ff5f15] animate-pulse" />
+              SYSTEM TELEMETRY: NOMINAL
+            </span>
+            <span className="text-zinc-600">|</span>
+            <span>SPEC: ISO 9001 &amp; ISO 11011 AUDITED</span>
+            <span className="text-zinc-600">|</span>
+            <span className="text-zinc-300">DEGREE: M.S. MECHANICAL ENGINEERING (2026)</span>
           </div>
+          <div className="flex items-center gap-4">
+            <span className="text-zinc-400">TIME: {currentTime || '12:00:00 UTC'}</span>
+            <span className="text-zinc-600">|</span>
+            <span className="text-[#ff5f15] font-semibold">BASE: LONDON, UK</span>
+          </div>
+        </div>
 
-          <div className="pf-schematic">
-            <div className="pf-schematic-tag">FIG. 01 — LOAD PATH, GO-KART CHASSIS</div>
-            <svg viewBox="0 0 320 220" fill="none">
-              <rect x="20" y="150" width="280" height="8" rx="2" stroke="#F97316" strokeWidth="1.5" />
-              <line x1="40" y1="150" x2="40" y2="70" stroke="#94A3B8" strokeWidth="1.5" />
-              <line x1="280" y1="150" x2="280" y2="70" stroke="#94A3B8" strokeWidth="1.5" />
-              <line x1="40" y1="70" x2="280" y2="70" stroke="#94A3B8" strokeWidth="1.5" strokeDasharray="4 4" />
-              <circle cx="70" cy="158" r="16" stroke="#F8FAFC" strokeWidth="1.5" />
-              <circle cx="250" cy="158" r="16" stroke="#F8FAFC" strokeWidth="1.5" />
-              <line x1="70" y1="142" x2="70" y2="70" stroke="#475569" strokeWidth="1" strokeDasharray="2 3" />
-              <line x1="250" y1="142" x2="250" y2="70" stroke="#475569" strokeWidth="1" strokeDasharray="2 3" />
-              <text x="150" y="60" fill="#64748B" fontSize="9" fontFamily="JetBrains Mono" textAnchor="middle">240mm WHEELBASE REF.</text>
-              <path d="M120 150 Q160 100 200 150" stroke="#F97316" strokeWidth="1.5" fill="none" />
-              <text x="160" y="115" fill="#F97316" fontSize="9" fontFamily="JetBrains Mono" textAnchor="middle">σ MAX</text>
-            </svg>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+          <a href="#" className="flex items-center gap-2.5 group">
+            <div className="w-9 h-9 rounded bg-[#121620] border border-[#ff5f15]/60 flex items-center justify-center text-[#ff5f15] group-hover:shadow-[0_0_15px_rgba(255,95,21,0.5)] transition-all">
+              <Cog size={20} className="animate-[spin_8s_linear_infinite]" />
+            </div>
+            <div>
+              <div className="font-extrabold tracking-tight text-white flex items-center gap-1.5 text-sm sm:text-base">
+                DHARANI KUMAR SUBBAN
+                <span className="text-[10px] font-mono-cad bg-[#ff5f15]/15 text-[#ff5f15] px-1.5 py-0.5 rounded border border-[#ff5f15]/30">
+                  MECH ENG
+                </span>
+              </div>
+              <div className="text-[10px] font-mono-cad text-zinc-400 tracking-wider">
+                PROCESS OPTIMIZATION &bull; SAFETY COMPLIANCE
+              </div>
+            </div>
+          </a>
+
+          <nav className="hidden lg:flex items-center gap-6 text-xs font-mono-cad tracking-wider uppercase">
+            <a href="#projects" className="text-zinc-400 hover:text-[#ff5f15] transition-colors flex items-center gap-1">
+              <span className="text-[#ff5f15]">//</span> 01. Engineered Systems
+            </a>
+            <a href="#education" className="text-zinc-400 hover:text-[#ff5f15] transition-colors flex items-center gap-1">
+              <span className="text-[#ff5f15]">//</span> 02. Education
+            </a>
+            <a href="#experience" className="text-zinc-400 hover:text-[#ff5f15] transition-colors flex items-center gap-1">
+              <span className="text-[#ff5f15]">//</span> 03. Operations Track
+            </a>
+            <a href="#skills" className="text-zinc-400 hover:text-[#ff5f15] transition-colors flex items-center gap-1">
+              <span className="text-[#ff5f15]">//</span> 04. Skills Matrix
+            </a>
+            <a href="#contact" className="text-zinc-400 hover:text-[#ff5f15] transition-colors flex items-center gap-1">
+              <span className="text-[#ff5f15]">//</span> 05. Comms Console
+            </a>
+          </nav>
+
+          <div className="flex items-center gap-2">
+            <a
+              href="#contact"
+              className="px-3 py-1.5 rounded bg-[#ff5f15] text-[#050608] font-bold text-xs font-mono-cad hover:bg-[#ff7a38] transition-all shadow-[0_0_15px_rgba(255,95,21,0.3)] flex items-center gap-1.5"
+            >
+              <Terminal size={14} />
+              <span className="hidden sm:inline">INITIALIZE</span> COMMS
+            </a>
           </div>
         </div>
       </header>
 
-      {/* ABOUT */}
-      <section className="pf-section" id="about">
-        <div className="pf-eyebrow">About</div>
-        <h2 className="pf-h2">Different rooms, one work ethic.</h2>
-        <div className="pf-about-grid">
-          <div className="pf-about-text">
-            <p>
-              My path into mechanical engineering didn't run in a straight line — and
-              that's exactly what makes it useful. Time spent in retail, executive
-              administration, and large-scale crowd management at Wembley Stadium
-              taught me how to read a room, manage competing priorities, and make
-              sound decisions when the pressure is real and the margin for error is
-              small.
-            </p>
-            <p>
-              Those roles built the problem-solving and communication instincts I now
-              apply on the engineering side: breaking down a technical problem,
-              working with a team toward a deadline, and explaining a result clearly
-              to people who weren't in the room for the analysis.
-            </p>
-            <p>
-              I'm currently pursuing an M.S. in Mechanical Engineering in London,
-              sharpening the technical foundation — CAD, simulation, and data
-              analysis — that sits underneath every project on this page.
-            </p>
+      {/* ------------------------------------------------------------ */}
+      {/* HERO SECTION: HEAVY INDUSTRIAL BRUTALISM                     */}
+      {/* ------------------------------------------------------------ */}
+      <section className="relative z-10 pt-14 pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-b border-white/10 overflow-hidden">
+        <div className="absolute top-4 left-4 text-zinc-600 font-mono-cad text-[10px] pointer-events-none select-none">
+          + LAT: 51.5074° N // LNG: 0.1278° W [CAD GRD: 01-A]
+        </div>
+        <div className="absolute top-4 right-4 text-zinc-600 font-mono-cad text-[10px] pointer-events-none select-none">
+          DOC ID: DKS-MECH-2026-PORTFOLIO // REV: D
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
+          <div className="lg:col-span-7 space-y-6">
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5 }}
+              className="inline-flex items-center gap-2 px-3 py-1 rounded bg-[#121620] border border-[#ff5f15]/40 text-[#ff5f15] text-xs font-mono-cad tracking-wider"
+            >
+              <Crosshair size={13} className="text-[#ff5f15]" />
+              <span>MECHANICAL ENGINEER &bull; M.S. CANDIDATE (UEL 2026)</span>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.1 }}
+            >
+              <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tighter text-white uppercase leading-[1.02]">
+                Dharani Kumar <br />
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#ff5f15] via-[#ff7a38] to-[#facc15]">
+                  Subban
+                </span>
+              </h1>
+              <p className="mt-2 text-xl sm:text-2xl font-bold tracking-tight text-zinc-300 font-mono-cad">
+                MECHANICAL ENGINEER
+              </p>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="space-y-4"
+            >
+              <div className="p-4 rounded-lg bg-[#0d1017] border-l-4 border-[#ff5f15] border-y border-r border-white/5">
+                <p className="text-sm sm:text-base font-semibold text-zinc-200 uppercase tracking-wide font-mono-cad">
+                  Core Mandate: Process Optimization &bull; Safety Compliance &bull; Streamlined Workflows
+                </p>
+              </div>
+
+              <p className="text-zinc-400 text-sm sm:text-base leading-relaxed max-w-2xl">
+                Bridging rigorous analytical engineering (SolidWorks CAD, ANSYS FEA, thermodynamic balancing, ultrasonic acoustic diagnostics) with high-stakes operational execution. Proven across stadium-scale crowd safety, institutional data architectures, and lean industrial logistics.
+              </p>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+              className="flex flex-wrap items-center gap-4 pt-2"
+            >
+              <a
+                href="#projects"
+                className="px-6 py-3 rounded-md bg-[#ff5f15] text-[#050608] font-black text-sm tracking-wide font-mono-cad uppercase hover:bg-[#ff7a38] transition-all shadow-[0_0_25px_rgba(255,95,21,0.4)] flex items-center gap-2 group"
+              >
+                <span>EXPLORE BENTO SYSTEMS</span>
+                <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform" />
+              </a>
+
+              <a
+                href="#contact"
+                className="px-6 py-3 rounded-md bg-[#121620] border border-white/20 text-white font-bold text-sm tracking-wide font-mono-cad uppercase hover:border-[#ff5f15] hover:text-[#ff5f15] transition-all flex items-center gap-2"
+              >
+                <Download size={16} />
+                <span>TECHNICAL DOSSIER / CV</span>
+              </a>
+
+              <button
+                onClick={handleCopyEmail}
+                className="px-4 py-3 rounded-md bg-[#0d1017] border border-white/10 text-zinc-400 hover:text-white hover:border-white/20 transition-all text-xs font-mono-cad flex items-center gap-2"
+              >
+                {copiedEmail ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
+                <span>{copiedEmail ? 'COPIED TO CLIPBOARD' : 'COPY DIRECT EMAIL'}</span>
+              </button>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.8, delay: 0.4 }}
+              className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-4 border-t border-white/10 font-mono-cad text-xs"
+            >
+              <div className="bg-[#0d1017] p-2.5 rounded border border-white/5">
+                <div className="text-[#ff5f15] font-bold text-lg">23% CUT</div>
+                <div className="text-zinc-500 text-[10px]">Air Energy Leakage</div>
+              </div>
+              <div className="bg-[#0d1017] p-2.5 rounded border border-white/5">
+                <div className="text-[#facc15] font-bold text-lg">80K+ PAX</div>
+                <div className="text-zinc-500 text-[10px]">Wembley Crowd Safety</div>
+              </div>
+              <div className="bg-[#0d1017] p-2.5 rounded border border-white/5">
+                <div className="text-white font-bold text-lg">01 / 2026</div>
+                <div className="text-zinc-500 text-[10px]">M.S. Mech Target</div>
+              </div>
+              <div className="bg-[#0d1017] p-2.5 rounded border border-white/5">
+                <div className="text-emerald-400 font-bold text-lg">100%</div>
+                <div className="text-zinc-500 text-[10px]">Audit Compliance</div>
+              </div>
+            </motion.div>
           </div>
-          <div className="pf-path">
-            <div className="pf-path-node">
-              <div className="pf-path-dot" />
-              <div>
-                <div className="pf-path-label-title">Retail</div>
-                <div className="pf-path-label-sub">Speed, accuracy, working under targets</div>
+
+          <div className="lg:col-span-5">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.7, delay: 0.2 }}
+              className="relative p-6 rounded-xl bg-[#0d1017] border border-white/15 laser-border-glow shadow-2xl overflow-hidden tech-corners"
+            >
+              <div className="flex items-center justify-between border-b border-white/10 pb-3 mb-4 font-mono-cad text-xs text-zinc-400">
+                <div className="flex items-center gap-2">
+                  <Ruler size={14} className="text-[#ff5f15]" />
+                  <span>CAD SPECIFICATION: ASSEMBLY FIG. 01</span>
+                </div>
+                <span className="text-[#ff5f15] bg-[#ff5f15]/10 px-2 py-0.5 rounded text-[10px] border border-[#ff5f15]/20">
+                  INTERACTIVE
+                </span>
               </div>
-            </div>
-            <div className="pf-path-node">
-              <div className="pf-path-dot" />
-              <div>
-                <div className="pf-path-label-title">Administration</div>
-                <div className="pf-path-label-sub">Financial acumen, structured reporting</div>
+
+              <div className="relative aspect-square max-h-[360px] w-full flex items-center justify-center bg-[#07090e] rounded-lg border border-white/5 p-4 overflow-hidden">
+                <div className="absolute inset-0 bg-cad-grid-dense opacity-30" />
+
+                <svg viewBox="0 0 300 300" className="w-full h-full relative z-10" fill="none">
+                  <circle cx="150" cy="150" r="120" stroke="#252d3d" strokeWidth="1.5" strokeDasharray="4 4" />
+                  <circle cx="150" cy="150" r="105" stroke="#ff5f15" strokeWidth="1" strokeOpacity="0.4" />
+                  <circle cx="150" cy="150" r="85" stroke="#3b465c" strokeWidth="1.5" />
+                  <circle cx="150" cy="150" r="50" stroke="#ff5f15" strokeWidth="2" />
+                  <circle cx="150" cy="150" r="22" fill="#121620" stroke="#ffffff" strokeWidth="1.5" />
+
+                  {[0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330].map((deg) => (
+                    <g key={deg} transform={`rotate(${deg} 150 150)`}>
+                      <line x1="150" y1="28" x2="150" y2="35" stroke="#ff5f15" strokeWidth="2.5" />
+                      <circle cx="150" cy="65" r="3" fill="#252d3d" />
+                    </g>
+                  ))}
+
+                  <g className="animate-[spin_20s_linear_infinite]" style={{ transformOrigin: '150px 150px' }}>
+                    <line x1="150" y1="150" x2="235" y2="150" stroke="#ff5f15" strokeWidth="2" />
+                    <circle cx="235" cy="150" r="5" fill="#ff5f15" />
+                    <line x1="150" y1="150" x2="90" y2="70" stroke="#facc15" strokeWidth="1.5" strokeDasharray="3 3" />
+                    <polygon points="90,70 85,80 97,77" fill="#facc15" />
+                  </g>
+
+                  <line x1="15" y1="150" x2="285" y2="150" stroke="#475569" strokeWidth="0.8" strokeDasharray="5 5" />
+                  <line x1="150" y1="15" x2="150" y2="285" stroke="#475569" strokeWidth="0.8" strokeDasharray="5 5" />
+
+                  <text x="160" y="45" fill="#ff5f15" fontSize="8" fontFamily="monospace">Ø 240mm PCD</text>
+                  <text x="160" y="110" fill="#94a3b8" fontSize="8" fontFamily="monospace">σ_MAX = 184 MPa</text>
+                  <text x="30" y="275" fill="#64748b" fontSize="8" fontFamily="monospace">TOLERANCE: ±0.015 mm</text>
+                  <text x="190" y="275" fill="#facc15" fontSize="8" fontFamily="monospace">EFFICIENCY: 98.2%</text>
+                </svg>
+
+                <div className="absolute inset-x-0 h-1 bg-gradient-to-r from-transparent via-[#ff5f15] to-transparent animate-laser-sweep opacity-70 pointer-events-none" />
               </div>
-            </div>
-            <div className="pf-path-node">
-              <div className="pf-path-dot" />
-              <div>
-                <div className="pf-path-label-title">Crowd Management</div>
-                <div className="pf-path-label-sub">High-pressure judgement, leadership</div>
+
+              <div className="mt-4 pt-3 border-t border-white/10 flex items-center justify-between text-[11px] font-mono-cad">
+                <div className="flex items-center gap-1.5 text-zinc-300">
+                  <Activity size={13} className="text-[#ff5f15]" />
+                  <span>KINEMATICS: OPERATIONAL</span>
+                </div>
+                <div className="text-zinc-500">SCALE: 1:1 [METRIC]</div>
               </div>
-            </div>
-            <div className="pf-path-node pf-final">
-              <div className="pf-path-dot" />
-              <div>
-                <div className="pf-path-label-title">Mechanical Engineering</div>
-                <div className="pf-path-label-sub">Where it all converges — M.S., London</div>
-              </div>
-            </div>
+            </motion.div>
           </div>
         </div>
       </section>
 
-      {/* PROJECTS */}
-      <section className="pf-section" id="projects" style={{ background: "var(--slate-100)", maxWidth: "100%" }}>
-        <div style={{ maxWidth: 1280, margin: "0 auto" }}>
-          <div className="pf-eyebrow">Technical Projects</div>
-          <h2 className="pf-h2">Engineering, tested against the real world.</h2>
-          <div className="pf-projects-grid">
-            {PROJECTS.map((proj) => {
-              const Icon = proj.icon;
-              return (
-                <div className="pf-card" key={proj.code}>
-                  <div className="pf-card-top">
-                    <div className="pf-card-icon">
-                      <Icon size={20} />
-                    </div>
-                    <div className="pf-card-code">{proj.code}</div>
+      {/* ------------------------------------------------------------ */}
+      {/* 3. MODULAR BENTO GRID (WITH MECHANICAL PARALLAX EFFECTS)     */}
+      {/* ------------------------------------------------------------ */}
+      <section id="projects" ref={bentoRef} className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto relative">
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 border-b border-white/10 pb-6">
+          <div>
+            <div className="inline-flex items-center gap-2 text-xs font-mono-cad text-[#ff5f15] uppercase tracking-widest mb-2">
+              <Layers size={14} />
+              <span>Section 01 // Modular Bento Matrix</span>
+            </div>
+            <h2 className="text-3xl sm:text-5xl font-black text-white tracking-tight uppercase">
+              Engineered Systems
+            </h2>
+            <p className="mt-2 text-zinc-400 text-sm max-w-xl">
+              Physical engineering research, industrial diagnostic rigs, and mechanical fabrication projects executed with rigorous data validation.
+            </p>
+          </div>
+          <div className="mt-4 md:mt-0 font-mono-cad text-xs text-zinc-500 flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-[#ff5f15] animate-ping" />
+            <span>[PARALLAX MOTION ACTIVE &bull; CLICK FOR CAD BLUEPRINT]</span>
+          </div>
+        </div>
+
+        {/* Modular Bento Grid: 1 col on mobile, asymmetrical 12-column on desktop */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-6">
+
+          {/* Bento Item 1: Compressed Air Leak Detection (7 cols) */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+            onClick={() => setSelectedProject(PROJECTS[0])}
+            className="lg:col-span-7 bg-[#0d1017] rounded-xl border border-white/15 p-6 hover:border-[#ff5f15] transition-all cursor-pointer group laser-border-glow tech-corners flex flex-col justify-between overflow-hidden relative"
+          >
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2.5">
+                  {/* Mechanical Parallax on Icon Container */}
+                  <motion.div
+                    style={{ y: bentoIconParallax }}
+                    className="p-2.5 rounded-lg bg-[#151a24] text-[#ff5f15] border border-white/10 group-hover:border-[#ff5f15]/50 group-hover:shadow-[0_0_15px_rgba(255,95,21,0.3)] transition-all"
+                  >
+                    <Wind size={22} />
+                  </motion.div>
+                  <div>
+                    <span className="text-[11px] font-mono-cad text-[#ff5f15] tracking-wider uppercase font-semibold">
+                      {PROJECTS[0].code}
+                    </span>
+                    <h3 className="text-xl sm:text-2xl font-black text-white tracking-tight group-hover:text-[#ff5f15] transition-colors">
+                      {PROJECTS[0].title}
+                    </h3>
                   </div>
-                  <h3>{proj.title}</h3>
-                  <p className="pf-desc">{proj.description}</p>
-                  <div className="pf-tools">
-                    {proj.tools.map((t) => (
-                      <span className="pf-tool-pill" key={t}>{t}</span>
+                </div>
+                <div className="p-2 rounded bg-white/5 text-zinc-400 group-hover:text-[#ff5f15] transition-colors">
+                  <Maximize2 size={16} />
+                </div>
+              </div>
+
+              <p className="text-zinc-400 text-sm leading-relaxed mb-6">
+                {PROJECTS[0].summary}
+              </p>
+
+              {/* Parallax Layered Schematic Visualizer */}
+              <motion.div style={{ y: bentoBadgeParallax }} className="mb-6">
+                <SchematicVisual type="pneumatic" />
+              </motion.div>
+            </div>
+
+            <div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4 font-mono-cad">
+                {PROJECTS[0].metrics.map((m, i) => (
+                  <div key={i} className="p-2.5 rounded bg-[#121620] border border-white/5">
+                    <div className="text-[10px] text-zinc-500 uppercase">{m.label}</div>
+                    <div className="text-sm font-bold text-white mt-0.5">{m.value}</div>
+                    {m.delta && <div className="text-[10px] text-[#ff5f15]">{m.delta}</div>}
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex flex-wrap gap-1.5 pt-3 border-t border-white/10">
+                {PROJECTS[0].tags.map((t, idx) => (
+                  <span
+                    key={idx}
+                    className="text-[11px] font-mono-cad px-2.5 py-0.5 rounded bg-[#121620] text-zinc-300 border border-white/5"
+                  >
+                    {t}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Bento Item 2: Energy Efficiency in Small Industries (5 cols) */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            onClick={() => setSelectedProject(PROJECTS[1])}
+            className="lg:col-span-5 bg-[#0d1017] rounded-xl border border-white/15 p-6 hover:border-[#ff5f15] transition-all cursor-pointer group laser-border-glow tech-corners flex flex-col justify-between overflow-hidden relative"
+          >
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2.5">
+                  <motion.div
+                    style={{ y: bentoIconParallax, rotate: bentoGearParallax }}
+                    className="p-2.5 rounded-lg bg-[#151a24] text-[#facc15] border border-white/10 group-hover:border-[#facc15]/50 group-hover:shadow-[0_0_15px_rgba(250,204,21,0.3)] transition-all"
+                  >
+                    <Factory size={22} />
+                  </motion.div>
+                  <div>
+                    <span className="text-[11px] font-mono-cad text-[#facc15] tracking-wider uppercase font-semibold">
+                      {PROJECTS[1].code}
+                    </span>
+                    <h3 className="text-xl sm:text-2xl font-black text-white tracking-tight group-hover:text-[#facc15] transition-colors">
+                      {PROJECTS[1].title}
+                    </h3>
+                  </div>
+                </div>
+                <div className="p-2 rounded bg-white/5 text-zinc-400 group-hover:text-[#facc15] transition-colors">
+                  <Maximize2 size={16} />
+                </div>
+              </div>
+
+              <p className="text-zinc-400 text-sm leading-relaxed mb-6">
+                {PROJECTS[1].summary}
+              </p>
+
+              <motion.div style={{ y: bentoBadgeParallax }} className="mb-6">
+                <SchematicVisual type="energy" />
+              </motion.div>
+            </div>
+
+            <div>
+              <div className="grid grid-cols-2 gap-2 mb-4 font-mono-cad">
+                {PROJECTS[1].metrics.map((m, i) => (
+                  <div key={i} className="p-2.5 rounded bg-[#121620] border border-white/5">
+                    <div className="text-[10px] text-zinc-500 uppercase">{m.label}</div>
+                    <div className="text-sm font-bold text-white mt-0.5">{m.value}</div>
+                    {m.delta && <div className="text-[10px] text-emerald-400">{m.delta}</div>}
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex flex-wrap gap-1.5 pt-3 border-t border-white/10">
+                {PROJECTS[1].tags.slice(0, 3).map((t, idx) => (
+                  <span
+                    key={idx}
+                    className="text-[11px] font-mono-cad px-2.5 py-0.5 rounded bg-[#121620] text-zinc-300 border border-white/5"
+                  >
+                    {t}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Bento Item 3: TiO2 & ZrO2 Biodiesel Blends (6 cols) */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            onClick={() => setSelectedProject(PROJECTS[2])}
+            className="lg:col-span-6 bg-[#0d1017] rounded-xl border border-white/15 p-6 hover:border-[#ff5f15] transition-all cursor-pointer group laser-border-glow tech-corners flex flex-col justify-between overflow-hidden relative"
+          >
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2.5">
+                  <motion.div
+                    style={{ y: bentoIconParallax }}
+                    className="p-2.5 rounded-lg bg-[#151a24] text-[#ff5f15] border border-white/10 group-hover:border-[#ff5f15]/50 group-hover:shadow-[0_0_15px_rgba(255,95,21,0.3)] transition-all"
+                  >
+                    <Flame size={22} />
+                  </motion.div>
+                  <div>
+                    <span className="text-[11px] font-mono-cad text-[#ff5f15] tracking-wider uppercase font-semibold">
+                      {PROJECTS[2].code}
+                    </span>
+                    <h3 className="text-xl sm:text-2xl font-black text-white tracking-tight group-hover:text-[#ff5f15] transition-colors">
+                      {PROJECTS[2].title}
+                    </h3>
+                  </div>
+                </div>
+                <div className="p-2 rounded bg-white/5 text-zinc-400 group-hover:text-[#ff5f15] transition-colors">
+                  <Maximize2 size={16} />
+                </div>
+              </div>
+
+              <p className="text-zinc-400 text-sm leading-relaxed mb-6">
+                {PROJECTS[2].summary}
+              </p>
+
+              <motion.div style={{ y: bentoBadgeParallax }} className="mb-6">
+                <SchematicVisual type="bio" />
+              </motion.div>
+            </div>
+
+            <div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4 font-mono-cad">
+                {PROJECTS[2].metrics.map((m, i) => (
+                  <div key={i} className="p-2.5 rounded bg-[#121620] border border-white/5">
+                    <div className="text-[10px] text-zinc-500 uppercase">{m.label}</div>
+                    <div className="text-sm font-bold text-white mt-0.5">{m.value}</div>
+                    {m.delta && <div className="text-[10px] text-[#ff5f15]">{m.delta}</div>}
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex flex-wrap gap-1.5 pt-3 border-t border-white/10">
+                {PROJECTS[2].tags.map((t, idx) => (
+                  <span
+                    key={idx}
+                    className="text-[11px] font-mono-cad px-2.5 py-0.5 rounded bg-[#121620] text-zinc-300 border border-white/5"
+                  >
+                    {t}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Bento Item 4: Go-kart BFKCT (6 cols) */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+            onClick={() => setSelectedProject(PROJECTS[3])}
+            className="lg:col-span-6 bg-[#0d1017] rounded-xl border border-white/15 p-6 hover:border-[#ff5f15] transition-all cursor-pointer group laser-border-glow tech-corners flex flex-col justify-between overflow-hidden relative"
+          >
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2.5">
+                  <motion.div
+                    style={{ y: bentoIconParallax }}
+                    className="p-2.5 rounded-lg bg-[#151a24] text-[#ff5f15] border border-white/10 group-hover:border-[#ff5f15]/50 group-hover:shadow-[0_0_15px_rgba(255,95,21,0.3)] transition-all"
+                  >
+                    <Car size={22} />
+                  </motion.div>
+                  <div>
+                    <span className="text-[11px] font-mono-cad text-[#ff5f15] tracking-wider uppercase font-semibold">
+                      {PROJECTS[3].code}
+                    </span>
+                    <h3 className="text-xl sm:text-2xl font-black text-white tracking-tight group-hover:text-[#ff5f15] transition-colors">
+                      {PROJECTS[3].title}
+                    </h3>
+                  </div>
+                </div>
+                <div className="p-2 rounded bg-white/5 text-zinc-400 group-hover:text-[#ff5f15] transition-colors">
+                  <Maximize2 size={16} />
+                </div>
+              </div>
+
+              <p className="text-zinc-400 text-sm leading-relaxed mb-6">
+                {PROJECTS[3].summary}
+              </p>
+
+              <motion.div style={{ y: bentoBadgeParallax }} className="mb-6">
+                <SchematicVisual type="kart" />
+              </motion.div>
+            </div>
+
+            <div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4 font-mono-cad">
+                {PROJECTS[3].metrics.map((m, i) => (
+                  <div key={i} className="p-2.5 rounded bg-[#121620] border border-white/5">
+                    <div className="text-[10px] text-zinc-500 uppercase">{m.label}</div>
+                    <div className="text-sm font-bold text-white mt-0.5">{m.value}</div>
+                    {m.delta && <div className="text-[10px] text-[#ff5f15]">{m.delta}</div>}
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex flex-wrap gap-1.5 pt-3 border-t border-white/10">
+                {PROJECTS[3].tags.map((t, idx) => (
+                  <span
+                    key={idx}
+                    className="text-[11px] font-mono-cad px-2.5 py-0.5 rounded bg-[#121620] text-zinc-300 border border-white/5"
+                  >
+                    {t}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </motion.div>
+
+        </div>
+      </section>
+
+      {/* ------------------------------------------------------------ */}
+      {/* EDUCATION SECTION (BENTO CREDENTIAL MATRIX)                  */}
+      {/* ------------------------------------------------------------ */}
+      <section id="education" className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-t border-white/10">
+        <div className="mb-12">
+          <div className="inline-flex items-center gap-2 text-xs font-mono-cad text-[#ff5f15] uppercase tracking-widest mb-2">
+            <GraduationCap size={14} />
+            <span>Section 02 // Academic Qualifications</span>
+          </div>
+          <h2 className="text-3xl sm:text-5xl font-black text-white tracking-tight uppercase">
+            Education &amp; Credentials
+          </h2>
+          <p className="mt-2 text-zinc-400 text-sm max-w-xl">
+            Formal mechanical engineering foundations spanning computational fluid dynamics, thermodynamics, machine design, and advanced research.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+            className="p-8 rounded-xl bg-[#0d1017] border border-white/15 laser-border-glow tech-corners flex flex-col justify-between"
+          >
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <span className="px-2.5 py-1 rounded bg-[#ff5f15]/15 text-[#ff5f15] font-mono-cad text-xs font-semibold border border-[#ff5f15]/30">
+                  CURRENT DEGREE PROGRAM
+                </span>
+                <span className="font-mono-cad text-xs text-zinc-400 flex items-center gap-1.5">
+                  <Clock size={13} className="text-[#ff5f15]" />
+                  EXPECTED: 01 / 2026
+                </span>
+              </div>
+
+              <h3 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+                Master of Science (M.S.)
+              </h3>
+              <div className="text-lg font-bold text-[#ff5f15] font-mono-cad mt-1">
+                MECHANICAL ENGINEERING
+              </div>
+              <div className="text-zinc-300 font-medium text-base mt-2 flex items-center gap-2">
+                <MapPin size={16} className="text-zinc-500" />
+                University Of East London, United Kingdom
+              </div>
+
+              <div className="mt-6 space-y-3 text-sm text-zinc-400">
+                <p>
+                  Specialized curriculum focusing on advanced computational modeling, energy system sustainability, and applied research methodologies in thermodynamics and fluid systems.
+                </p>
+                <div className="pt-2">
+                  <span className="text-xs font-mono-cad text-zinc-300 uppercase tracking-wider block mb-2 font-semibold">
+                    Core Coursework &amp; Research:
+                  </span>
+                  <div className="flex flex-wrap gap-2 font-mono-cad text-xs">
+                    <span className="px-2 py-1 rounded bg-[#121620] text-zinc-300 border border-white/5">
+                      Computational Fluid Dynamics (CFD)
+                    </span>
+                    <span className="px-2 py-1 rounded bg-[#121620] text-zinc-300 border border-white/5">
+                      Advanced Thermodynamics
+                    </span>
+                    <span className="px-2 py-1 rounded bg-[#121620] text-zinc-300 border border-white/5">
+                      Sustainable Energy Systems
+                    </span>
+                    <span className="px-2 py-1 rounded bg-[#121620] text-zinc-300 border border-white/5">
+                      Finite Element Methods
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-8 pt-4 border-t border-white/10 flex items-center justify-between text-xs font-mono-cad text-zinc-400">
+              <span>STATUS: IN PROGRESS</span>
+              <span className="text-[#ff5f15] font-semibold">LONDON CAMPUS</span>
+            </div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+            className="p-8 rounded-xl bg-[#0d1017] border border-white/15 laser-border-glow tech-corners flex flex-col justify-between"
+          >
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <span className="px-2.5 py-1 rounded bg-emerald-500/15 text-emerald-400 font-mono-cad text-xs font-semibold border border-emerald-500/30">
+                  CONFERRED DEGREE
+                </span>
+                <span className="font-mono-cad text-xs text-zinc-400 flex items-center gap-1.5">
+                  <CheckCircle2 size={13} className="text-emerald-400" />
+                  GRADUATED: 05 / 2020
+                </span>
+              </div>
+
+              <h3 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+                Bachelor of Engineering (B.E.)
+              </h3>
+              <div className="text-lg font-bold text-zinc-200 font-mono-cad mt-1">
+                MECHANICAL ENGINEERING
+              </div>
+              <div className="text-zinc-300 font-medium text-base mt-2 flex items-center gap-2">
+                <MapPin size={16} className="text-zinc-500" />
+                Sathyabama University, Chennai, India
+              </div>
+
+              <div className="mt-6 space-y-3 text-sm text-zinc-400">
+                <p>
+                  Comprehensive 4-year technical degree completed with First Class standing. Developed fundamental mechanical design principles, machine kinematics, manufacturing processes, and materials testing.
+                </p>
+                <div className="pt-2">
+                  <span className="text-xs font-mono-cad text-zinc-300 uppercase tracking-wider block mb-2 font-semibold">
+                    Core Coursework &amp; Practicum:
+                  </span>
+                  <div className="flex flex-wrap gap-2 font-mono-cad text-xs">
+                    <span className="px-2 py-1 rounded bg-[#121620] text-zinc-300 border border-white/5">
+                      Design of Transmission Systems
+                    </span>
+                    <span className="px-2 py-1 rounded bg-[#121620] text-zinc-300 border border-white/5">
+                      Kinematics &amp; Dynamics of Machinery
+                    </span>
+                    <span className="px-2 py-1 rounded bg-[#121620] text-zinc-300 border border-white/5">
+                      Heat &amp; Mass Transfer
+                    </span>
+                    <span className="px-2 py-1 rounded bg-[#121620] text-zinc-300 border border-white/5">
+                      Manufacturing Technology &amp; Metrology
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-8 pt-4 border-t border-white/10 flex items-center justify-between text-xs font-mono-cad text-zinc-400">
+              <span>HONORS: FIRST CLASS</span>
+              <span className="text-emerald-400 font-semibold">VERIFIED CREDENTIAL</span>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ------------------------------------------------------------ */}
+      {/* WORK HISTORY: PROCESS & LOGISTICS TRACK                      */}
+      {/* ------------------------------------------------------------ */}
+      <section id="experience" className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-t border-white/10">
+        <div className="mb-12">
+          <div className="inline-flex items-center gap-2 text-xs font-mono-cad text-[#ff5f15] uppercase tracking-widest mb-2">
+            <Workflow size={14} />
+            <span>Section 03 // Operational Trajectory</span>
+          </div>
+          <h2 className="text-3xl sm:text-5xl font-black text-white tracking-tight uppercase">
+            Work History &amp; Logistics Track
+          </h2>
+          <p className="mt-2 text-zinc-400 text-sm max-w-xl">
+            Real-world operational execution across high-density crowd management, logistics accuracy, institutional data flow, and food safety protocols.
+          </p>
+        </div>
+
+        <div className="relative pl-6 sm:pl-10 space-y-12 before:absolute before:left-[11px] sm:before:left-[15px] before:top-3 before:bottom-3 before:w-[2px] before:bg-gradient-to-b before:from-[#ff5f15] before:via-white/20 before:to-[#ff5f15]/30">
+          {WORK_HISTORY.map((job, idx) => (
+            <motion.div
+              key={idx}
+              initial={{ opacity: 0, x: -20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: idx * 0.1 }}
+              className="relative"
+            >
+              <div className="absolute -left-[30px] sm:-left-[38px] top-1.5 w-6 h-6 rounded-full bg-[#080a0f] border-2 border-[#ff5f15] flex items-center justify-center shadow-[0_0_10px_rgba(255,95,21,0.5)]">
+                <div className="w-2 h-2 rounded-full bg-[#ff5f15]" />
+              </div>
+
+              <div className="p-6 sm:p-8 rounded-xl bg-[#0d1017] border border-white/15 laser-border-glow tech-corners">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/10 pb-4 mb-4">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-mono-cad text-[#ff5f15] tracking-wider uppercase font-bold">
+                        {job.type}
+                      </span>
+                      <span className="text-zinc-600">&bull;</span>
+                      <span className="text-xs font-mono-cad text-zinc-400">{job.location}</span>
+                    </div>
+                    <h3 className="text-xl sm:text-2xl font-black text-white tracking-tight mt-1">
+                      {job.role}
+                    </h3>
+                    <div className="text-base font-bold text-zinc-300 font-mono-cad">
+                      {job.company}
+                    </div>
+                  </div>
+
+                  <div className="px-3 py-1 rounded bg-[#121620] border border-white/10 text-xs font-mono-cad text-zinc-300 self-start sm:self-center font-semibold">
+                    {job.timeline}
+                  </div>
+                </div>
+
+                <ul className="space-y-2.5 text-sm text-zinc-400 mb-6">
+                  {job.points.map((pt, pIdx) => (
+                    <li key={pIdx} className="flex items-start gap-2.5">
+                      <CornerDownRight size={15} className="text-[#ff5f15] mt-1 shrink-0" />
+                      <span className="leading-relaxed">{pt}</span>
+                    </li>
+                  ))}
+                </ul>
+
+                <div className="pt-4 border-t border-white/10 flex flex-wrap items-center justify-between gap-4 font-mono-cad text-xs">
+                  <div className="flex flex-wrap gap-1.5">
+                    {job.badges.map((b, bIdx) => (
+                      <span
+                        key={bIdx}
+                        className="px-2.5 py-1 rounded bg-[#121620] text-zinc-300 border border-white/5 text-[11px]"
+                      >
+                        {b}
+                      </span>
                     ))}
                   </div>
-                  <div className="pf-impact">
-                    Impact — <span>{proj.impact}</span>
+
+                  <div className="flex items-center gap-3 text-zinc-400">
+                    <span className="text-emerald-400 font-semibold">{job.telemetry.metric1}</span>
+                    <span className="text-zinc-600">|</span>
+                    <span className="text-[#ff5f15] font-semibold">{job.telemetry.metric2}</span>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </section>
+
+      {/* ------------------------------------------------------------ */}
+      {/* TECHNICAL SPECIFICATIONS: SKILLS MATRIX                      */}
+      {/* ------------------------------------------------------------ */}
+      <section id="skills" className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-t border-white/10">
+        <div className="mb-12">
+          <div className="inline-flex items-center gap-2 text-xs font-mono-cad text-[#ff5f15] uppercase tracking-widest mb-2">
+            <Cpu size={14} />
+            <span>Section 04 // Capability Architecture</span>
+          </div>
+          <h2 className="text-3xl sm:text-5xl font-black text-white tracking-tight uppercase">
+            Technical Specifications &amp; Skills Matrix
+          </h2>
+          <p className="mt-2 text-zinc-400 text-sm max-w-xl">
+            Quantitative assessment of core analytical competencies, rapid problem-solving frameworks, financial evaluation, and domain CAD/FEA utilities.
+          </p>
+        </div>
+
+        <div className="flex flex-wrap gap-2 mb-8 border-b border-white/10 pb-4">
+          {SKILLS_MATRIX.map((cat) => {
+            const Icon = cat.icon;
+            const isActive = activeSkillCategory === cat.category;
+            return (
+              <button
+                key={cat.category}
+                onClick={() => setActiveSkillCategory(cat.category)}
+                className={`px-4 py-2 rounded font-mono-cad text-xs uppercase tracking-wider flex items-center gap-2 transition-all ${
+                  isActive
+                    ? 'bg-[#ff5f15] text-[#050608] font-bold shadow-[0_0_15px_rgba(255,95,21,0.4)]'
+                    : 'bg-[#0d1017] text-zinc-400 border border-white/10 hover:border-white/30 hover:text-white'
+                }`}
+              >
+                <Icon size={14} />
+                <span>{cat.category}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        {SKILLS_MATRIX.filter((c) => c.category === activeSkillCategory).map((cat) => (
+          <motion.div
+            key={cat.category}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+            className="p-8 rounded-xl bg-[#0d1017] border border-white/15 laser-border-glow tech-corners mb-12"
+          >
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 pb-6 border-b border-white/10">
+              <div>
+                <span className="text-xs font-mono-cad text-[#ff5f15] font-semibold">
+                  SPECIFICATION CODE: {cat.code}
+                </span>
+                <h3 className="text-2xl sm:text-3xl font-black text-white tracking-tight mt-1">
+                  {cat.category} Competency Architecture
+                </h3>
+                <p className="text-sm text-zinc-400 mt-1 max-w-2xl">{cat.summary}</p>
+              </div>
+              <div className="flex items-center gap-3 bg-[#121620] px-4 py-2.5 rounded border border-white/10 self-start sm:self-center">
+                <span className="text-xs font-mono-cad text-zinc-400 uppercase">PROFICIENCY SCORE</span>
+                <span className="text-2xl font-black text-[#ff5f15] font-mono-cad">{cat.score}%</span>
+              </div>
+            </div>
+
+            <div className="space-y-5">
+              {cat.items.map((item, idx) => (
+                <div key={idx}>
+                  <div className="flex justify-between items-center text-xs font-mono-cad mb-1.5">
+                    <span className="text-zinc-200 font-semibold">{item.name}</span>
+                    <span className="text-[#ff5f15] font-mono-cad font-bold">{item.level}%</span>
+                  </div>
+                  <div className="w-full bg-[#151a24] h-2.5 rounded-sm overflow-hidden border border-white/5">
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{ width: `${item.level}%` }}
+                      transition={{ duration: 0.8, delay: idx * 0.1 }}
+                      className="bg-gradient-to-r from-[#ff5f15] to-[#facc15] h-full rounded-sm"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        ))}
+
+        <div className="mt-12">
+          <div className="flex items-center justify-between mb-6">
+            <h4 className="text-lg font-black text-white uppercase font-mono-cad flex items-center gap-2">
+              <Compass size={18} className="text-[#ff5f15]" />
+              Domain Engineering &amp; Computational CAD/FEA Stack
+            </h4>
+            <span className="text-xs font-mono-cad text-zinc-500">6 CORE TOOLS</span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {DOMAIN_ENGINEERING_TOOLS.map((tool, idx) => {
+              const ToolIcon = tool.icon;
+              return (
+                <div
+                  key={idx}
+                  className="p-5 rounded-lg bg-[#0d1017] border border-white/10 hover:border-[#ff5f15]/50 transition-all group"
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="p-2 rounded bg-[#121620] text-[#ff5f15] border border-white/10 group-hover:shadow-[0_0_10px_rgba(255,95,21,0.3)] transition-all">
+                      <ToolIcon size={18} />
+                    </div>
+                    <span className="text-[10px] font-mono-cad px-2 py-0.5 rounded bg-white/5 text-zinc-400">
+                      {tool.tag}
+                    </span>
+                  </div>
+                  <div className="font-bold text-white text-base group-hover:text-[#ff5f15] transition-colors">
+                    {tool.name}
+                  </div>
+                  <div className="text-xs text-zinc-400 font-mono-cad mt-1 leading-relaxed">
+                    {tool.spec}
                   </div>
                 </div>
               );
@@ -854,147 +1699,322 @@ export default function Portfolio() {
         </div>
       </section>
 
-      {/* EXPERIENCE */}
-      <section className="pf-section" id="experience">
-        <div className="pf-eyebrow">Work Experience</div>
-        <h2 className="pf-h2">The professional foundation.</h2>
-        <div className="pf-timeline">
-          {EXPERIENCE.map((job) => (
-            <div className="pf-tl-item" key={job.role}>
-              <div className="pf-tl-dot" />
-              <div className="pf-tl-head">
-                <div>
-                  <span className="pf-tl-role">{job.role}</span>
-                  <span className="pf-tl-org">{job.org}</span>
-                </div>
-                <div className="pf-tl-period">{job.period}</div>
-              </div>
-              <ul>
-                {job.points.map((pt, i) => (
-                  <li key={i}>{pt}</li>
-                ))}
-              </ul>
+      {/* ------------------------------------------------------------ */}
+      {/* COMMS CONSOLE & CONTACT DIAGNOSTIC INTERFACE                */}
+      {/* ------------------------------------------------------------ */}
+      <section id="contact" className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-t border-white/10">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+          <div className="lg:col-span-5 space-y-6">
+            <div className="inline-flex items-center gap-2 text-xs font-mono-cad text-[#ff5f15] uppercase tracking-widest">
+              <Terminal size={14} />
+              <span>Section 05 // Direct Transmission</span>
             </div>
-          ))}
-        </div>
-      </section>
+            <h2 className="text-3xl sm:text-5xl font-black text-white tracking-tight uppercase">
+              Initialize Comms
+            </h2>
+            <p className="text-zinc-400 text-sm leading-relaxed">
+              Available for graduate mechanical engineering roles, industrial process optimization contracts, and operational workflow advisory. Reach out directly or dispatch a transmission via the diagnostic console.
+            </p>
 
-      {/* SKILLS */}
-      <section className="pf-section" id="skills" style={{ background: "var(--slate-100)", maxWidth: "100%" }}>
-        <div style={{ maxWidth: 1280, margin: "0 auto" }}>
-          <div className="pf-eyebrow">Skills Matrix</div>
-          <h2 className="pf-h2">What I bring to the table.</h2>
-          <div className="pf-skills-grid">
-            <div>
-              <div className="pf-skills-subhead">Technical / Engineering</div>
-              {TECH_SKILLS.map((s) => (
-                <div className="pf-bar-row" key={s.label}>
-                  <div className="pf-bar-label">
-                    <span>{s.label}</span>
-                    <span className="pf-bar-pct">{s.level}%</span>
+            <div className="space-y-4 pt-2 font-mono-cad text-xs">
+              <div
+                onClick={handleCopyEmail}
+                className="p-4 rounded-lg bg-[#0d1017] border border-white/10 hover:border-[#ff5f15] transition-all cursor-pointer group flex items-center justify-between"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded bg-[#121620] text-[#ff5f15]">
+                    <Mail size={16} />
                   </div>
-                  <div className="pf-bar-track">
-                    <div className="pf-bar-fill" style={{ width: `${s.level}%` }} />
+                  <div>
+                    <div className="text-zinc-500 text-[10px]">DIRECT TRANSMISSION DISPATCH</div>
+                    <div className="text-white font-bold group-hover:text-[#ff5f15] transition-colors">
+                      dharani.subban@engineering-mech.co.uk
+                    </div>
                   </div>
                 </div>
-              ))}
-            </div>
-            <div>
-              <div className="pf-skills-subhead">Professional / Soft Skills</div>
-              <div className="pf-tags">
-                {SOFT_SKILLS.map((s) => (
-                  <span className="pf-tag" key={s}>{s}</span>
-                ))}
+                <div className="text-zinc-500 group-hover:text-white">
+                  {copiedEmail ? <Check size={16} className="text-emerald-400" /> : <Copy size={16} />}
+                </div>
               </div>
+
+              <div className="p-4 rounded-lg bg-[#0d1017] border border-white/10 flex items-center gap-3">
+                <div className="p-2 rounded bg-[#121620] text-[#facc15]">
+                  <MapPin size={16} />
+                </div>
+                <div>
+                  <div className="text-zinc-500 text-[10px]">CURRENT BASE OF OPERATIONS</div>
+                  <div className="text-white font-bold">London, United Kingdom (Open to Global Relocation)</div>
+                </div>
+              </div>
+
+              <div className="p-4 rounded-lg bg-[#0d1017] border border-white/10 flex items-center gap-3">
+                <div className="p-2 rounded bg-[#121620] text-emerald-400">
+                  <ShieldCheck size={16} />
+                </div>
+                <div>
+                  <div className="text-zinc-500 text-[10px]">RIGHT TO WORK &amp; COMPLIANCE</div>
+                  <div className="text-white font-bold">UK Full Working Rights &bull; ISO / OSHA Audited</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-2">
+              <a
+                href="#contact"
+                onClick={(e) => {
+                  e.preventDefault();
+                  alert("Dossier Download: Dharani_Kumar_Subban_Mechanical_Engineer_CV.pdf (Simulated Transmission Ready)");
+                }}
+                className="w-full py-3.5 px-6 rounded-md bg-[#121620] border border-[#ff5f15] text-[#ff5f15] hover:bg-[#ff5f15] hover:text-[#050608] transition-all font-mono-cad text-xs uppercase font-bold tracking-wider flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(255,95,21,0.2)]"
+              >
+                <Download size={16} />
+                <span>DOWNLOAD COMPLETE MECHANICAL CV [PDF]</span>
+              </a>
             </div>
           </div>
-        </div>
-      </section>
 
-      {/* FOOTER / CONTACT */}
-      <footer className="pf-footer" id="contact">
-        <div className="pf-section" style={{ paddingBottom: 0 }}>
-          <div className="pf-footer-grid">
-            <div>
-              <div className="pf-eyebrow">Contact</div>
-              <h2 className="pf-h2">Let's build something.</h2>
-              <p className="pf-lede">
-                Open to graduate engineering roles, internships, and operations
-                positions where adaptability matters as much as technical skill.
-              </p>
-              <div className="pf-contact-list">
-                <div className="pf-contact-item"><Mail size={16} /> j.whitfield@email.com</div>
-                <div className="pf-contact-item"><Phone size={16} /> +44 7000 000000</div>
-                <div className="pf-contact-item"><MapPin size={16} /> London, UK</div>
+          <div className="lg:col-span-7">
+            <div className="p-8 rounded-xl bg-[#0d1017] border border-white/15 laser-border-glow tech-corners">
+              <div className="flex items-center justify-between border-b border-white/10 pb-4 mb-6 font-mono-cad text-xs">
+                <div className="flex items-center gap-2 text-[#ff5f15]">
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#ff5f15] animate-ping" />
+                  <span className="font-bold">COMMS TERMINAL: PORT 8080 // ONLINE</span>
+                </div>
+                <span className="text-zinc-500">256-BIT ENCRYPTION</span>
               </div>
-              <div className="pf-social-row">
-                <a className="pf-social-btn" href="#" aria-label="LinkedIn"><LinkedinIcon size={18} /></a>
-                <a className="pf-social-btn" href="#" aria-label="GitHub"><GithubIcon size={18} /></a>
-              </div>
-            </div>
 
-            <form className="pf-form" onSubmit={handleSubmit}>
-              <div className="pf-form-row">
+              <form onSubmit={handleFormSubmit} className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[11px] font-mono-cad text-zinc-400 uppercase tracking-wider mb-1.5">
+                      IDENTIFIER / FULL NAME *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Dr. Alan Turing"
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      className="w-full px-4 py-2.5 rounded bg-[#121620] border border-white/10 text-white font-mono-cad text-xs focus:border-[#ff5f15] focus:outline-none transition-colors"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-mono-cad text-zinc-400 uppercase tracking-wider mb-1.5">
+                      COMM CHANNEL / EMAIL *
+                    </label>
+                    <input
+                      type="email"
+                      required
+                      placeholder="e.g. contact@enterprise.com"
+                      value={formData.email}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      className="w-full px-4 py-2.5 rounded bg-[#121620] border border-white/10 text-white font-mono-cad text-xs focus:border-[#ff5f15] focus:outline-none transition-colors"
+                    />
+                  </div>
+                </div>
+
                 <div>
-                  <label htmlFor="pf-name">Name</label>
+                  <label className="block text-[11px] font-mono-cad text-zinc-400 uppercase tracking-wider mb-1.5">
+                    TRANSMISSION SUBJECT / PROJECT DOMAIN *
+                  </label>
                   <input
-                    id="pf-name"
                     type="text"
-                    placeholder="Your name"
-                    value={formState.name}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                      setFormState({ ...formState, name: e.target.value })
-                    }
                     required
+                    placeholder="e.g. Energy Audit / Graduate Engineer Role / CAD Design Inquiry"
+                    value={formData.subject}
+                    onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+                    className="w-full px-4 py-2.5 rounded bg-[#121620] border border-white/10 text-white font-mono-cad text-xs focus:border-[#ff5f15] focus:outline-none transition-colors"
                   />
                 </div>
+
                 <div>
-                  <label htmlFor="pf-email">Email</label>
-                  <input
-                    id="pf-email"
-                    type="email"
-                    placeholder="you@example.com"
-                    value={formState.email}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                      setFormState({ ...formState, email: e.target.value })
-                    }
+                  <label className="block text-[11px] font-mono-cad text-zinc-400 uppercase tracking-wider mb-1.5">
+                    TECHNICAL SPECIFICATION / MESSAGE PAYLOAD *
+                  </label>
+                  <textarea
+                    rows={4}
                     required
+                    placeholder="Outline your operational challenge, project parameters, or engineering role..."
+                    value={formData.message}
+                    onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                    className="w-full px-4 py-2.5 rounded bg-[#121620] border border-white/10 text-white font-mono-cad text-xs focus:border-[#ff5f15] focus:outline-none transition-colors resize-y"
                   />
                 </div>
-              </div>
-              <div>
-                <label htmlFor="pf-message">Message</label>
-                <textarea
-                  id="pf-message"
-                  rows={5}
-                  placeholder="What are you looking to build or discuss?"
-                  value={formState.message}
-                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
-                    setFormState({ ...formState, message: e.target.value })
-                  }
-                  required
-                />
-              </div>
-              <div className="pf-form-submit">
-                <button type="submit" className="pf-btn-primary">
-                  <Send size={16} /> Send Message
-                </button>
-              </div>
-              {sent && <div className="pf-sent-note">Message sent — thanks, I'll reply soon.</div>}
-            </form>
+
+                <div className="pt-2 flex items-center justify-between">
+                  <button
+                    type="submit"
+                    disabled={formStatus === 'transmitting'}
+                    className="px-6 py-3 rounded bg-[#ff5f15] text-[#050608] font-black text-xs font-mono-cad uppercase hover:bg-[#ff7a38] transition-all shadow-[0_0_20px_rgba(255,95,21,0.35)] flex items-center gap-2 disabled:opacity-50"
+                  >
+                    <Send size={14} />
+                    <span>
+                      {formStatus === 'transmitting'
+                        ? 'TRANSMITTING PACKET...'
+                        : formStatus === 'sent'
+                        ? 'PACKET RECEIVED'
+                        : 'DISPATCH TRANSMISSION'}
+                    </span>
+                  </button>
+
+                  <div className="text-[11px] font-mono-cad text-zinc-500">
+                    STATUS: {formStatus === 'transmitting' ? (
+                      <span className="text-[#facc15]">ENCRYPTING...</span>
+                    ) : formStatus === 'sent' ? (
+                      <span className="text-emerald-400 font-bold">TRANSMISSION CONFIRMED</span>
+                    ) : (
+                      'READY'
+                    )}
+                  </div>
+                </div>
+
+                {formStatus === 'sent' && (
+                  <div className="p-3 rounded bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-mono-cad">
+                    &gt; PACKET ACKNOWLEDGED: Thank you for your inquiry. Dharani Kumar Subban will respond within 24 hours.
+                  </div>
+                )}
+              </form>
+            </div>
           </div>
         </div>
+      </section>
 
-        {/* MOTION PRIMITIVES BANNER SHOWCASE */}
-        <div className="pf-showcase-wrapper">
-          <SpotlightBasic />
-        </div>
+      {/* ------------------------------------------------------------ */}
+      {/* FOOTER & SYSTEM SPECIFICATIONS                               */}
+      {/* ------------------------------------------------------------ */}
+      <footer className="border-t border-white/10 bg-[#050608] text-zinc-500 text-xs font-mono-cad py-10 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="flex items-center gap-3 text-zinc-400">
+            <Cog size={16} className="text-[#ff5f15]" />
+            <span className="text-white font-bold">DHARANI KUMAR SUBBAN</span>
+            <span>&bull;</span>
+            <span>MECHANICAL ENGINEER</span>
+            <span>&bull;</span>
+            <span className="text-zinc-500">LONDON, UK</span>
+          </div>
 
-        <div className="pf-bottom-bar">
-          <span>© {new Date().getFullYear()} J. Whitfield. All rights reserved.</span>
-          <span className="pf-mono">MECH ENG · LONDON</span>
+          <div className="flex items-center gap-6">
+            <a href="#projects" className="hover:text-[#ff5f15] transition-colors">
+              SYSTEMS
+            </a>
+            <a href="#education" className="hover:text-[#ff5f15] transition-colors">
+              EDUCATION
+            </a>
+            <a href="#experience" className="hover:text-[#ff5f15] transition-colors">
+              OPERATIONS
+            </a>
+            <a href="#skills" className="hover:text-[#ff5f15] transition-colors">
+              SKILLS
+            </a>
+            <a href="#contact" className="hover:text-[#ff5f15] transition-colors">
+              COMMS
+            </a>
+          </div>
+
+          <div>
+            &copy; {new Date().getFullYear()} DKS PORTFOLIO // ALL RIGHTS RESERVED
+          </div>
         </div>
       </footer>
-    </div>
+
+      {/* ------------------------------------------------------------ */}
+      {/* INTERACTIVE CAD BLUEPRINT MODAL                              */}
+      {/* ------------------------------------------------------------ */}
+      <AnimatePresence>
+        {selectedProject && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 lg:p-8 bg-black/85 backdrop-blur-md">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ duration: 0.3 }}
+              className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto bg-[#0d1017] rounded-xl border-2 border-[#ff5f15] shadow-[0_0_40px_rgba(255,95,21,0.35)] p-6 sm:p-8 tech-corners"
+            >
+              <div className="flex items-center justify-between border-b border-white/10 pb-4 mb-6">
+                <div>
+                  <span className="text-xs font-mono-cad text-[#ff5f15] tracking-wider uppercase font-bold">
+                    CAD BLUEPRINT DOSSIER // {selectedProject.code}
+                  </span>
+                  <h3 className="text-2xl sm:text-3xl font-black text-white tracking-tight mt-1">
+                    {selectedProject.title}
+                  </h3>
+                  <div className="text-xs font-mono-cad text-zinc-400 mt-0.5">
+                    {selectedProject.subtitle}
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => setSelectedProject(null)}
+                  className="p-2 rounded bg-white/5 hover:bg-[#ff5f15] hover:text-[#050608] text-white transition-all"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              <div className="mb-6">
+                <SchematicVisual type={selectedProject.schematicType} />
+              </div>
+
+              <div className="mb-6">
+                <div className="flex items-center gap-2 text-xs font-mono-cad text-[#ff5f15] font-bold uppercase mb-3">
+                  <Ruler size={14} />
+                  <span>Technical Specifications &amp; Parameters</span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs font-mono-cad">
+                  {Object.entries(selectedProject.specs).map(([k, v], i) => (
+                    <div key={i} className="p-2.5 rounded bg-[#121620] border border-white/5 flex justify-between">
+                      <span className="text-zinc-400">{k}:</span>
+                      <span className="text-white font-semibold">{v}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mb-6">
+                <div className="flex items-center gap-2 text-xs font-mono-cad text-[#facc15] font-bold uppercase mb-3">
+                  <Workflow size={14} />
+                  <span>Execution Methodology</span>
+                </div>
+                <ul className="space-y-2 text-sm text-zinc-300">
+                  {selectedProject.methodology.map((m, i) => (
+                    <li key={i} className="flex items-start gap-2.5">
+                      <CornerDownRight size={14} className="text-[#facc15] mt-1 shrink-0" />
+                      <span className="leading-relaxed">{m}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className="mb-6">
+                <div className="flex items-center gap-2 text-xs font-mono-cad text-emerald-400 font-bold uppercase mb-3">
+                  <CheckCircle2 size={14} />
+                  <span>Verified Engineering Deliverables</span>
+                </div>
+                <ul className="space-y-2 text-sm text-zinc-300">
+                  {selectedProject.outcomes.map((o, i) => (
+                    <li key={i} className="flex items-start gap-2.5">
+                      <Check size={14} className="text-emerald-400 mt-1 shrink-0" />
+                      <span className="leading-relaxed">{o}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className="pt-4 border-t border-white/10 flex items-center justify-between font-mono-cad text-xs">
+                <span className="text-zinc-500">SPECIFICATION DOCUMENT: ISO-CERTIFIED</span>
+                <button
+                  onClick={() => setSelectedProject(null)}
+                  className="px-4 py-2 rounded bg-[#ff5f15] text-[#050608] font-bold uppercase hover:bg-[#ff7a38] transition-all"
+                >
+                  CLOSE BLUEPRINT
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+        </motion.div>
+      )}
+    </>
   );
 }
