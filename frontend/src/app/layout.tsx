@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -13,6 +13,12 @@ const jetbrainsMono = JetBrains_Mono({
   variable: "--font-mono",
   display: "swap",
 });
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: "#080a0f",
+};
 
 export const metadata: Metadata = {
   title: "Dharani Kumar Subban | Mechanical Engineer — Precision Engineering & Operations",
@@ -31,7 +37,6 @@ export const metadata: Metadata = {
     "Sathyabama University",
   ],
   authors: [{ name: "Dharani Kumar Subban" }],
-  viewport: "width=device-width, initial-scale=1",
 };
 
 export default function RootLayout({

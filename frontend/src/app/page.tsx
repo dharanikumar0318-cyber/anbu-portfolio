@@ -10,6 +10,8 @@ import {
   useMotionValue,
 } from 'framer-motion';
 import SwarmPreloader from '../components/SwarmPreloader';
+import ActiveGearAssembly from '../components/ActiveGearAssembly';
+import { downloadCV } from '../utils/cvDownload';
 import {
   Cog,
   Wrench,
@@ -584,11 +586,43 @@ function SchematicVisual({ type }: { type: 'pneumatic' | 'energy' | 'bio' | 'kar
 export default function MechanicalEngineerPortfolio() {
   const [isBuilding, setIsBuilding] = useState<boolean>(true);
   const [selectedProject, setSelectedProject] = useState<ProjectData | null>(null);
+  const [downloadedToast, setDownloadedToast] = useState<boolean>(false);
   const [activeSkillCategory, setActiveSkillCategory] = useState<string>('Data Analysis');
   const [currentTime, setCurrentTime] = useState<string>('');
   const [copiedEmail, setCopiedEmail] = useState<boolean>(false);
   const [formStatus, setFormStatus] = useState<'idle' | 'transmitting' | 'sent'>('idle');
   const [formData, setFormData] = useState({ name: '', email: '', subject: '', message: '' });
+  const [honeypot, setHoneypot] = useState<string>('');
+  const [formError, setFormError] = useState<string | null>(null);
+  const formMountTime = useRef<number>(Date.now());
+  const lastSubmitTime = useRef<number>(0);
+
+  // Instant CV Download Handler
+  const handleDownloadCV = (e?: React.MouseEvent) => {
+    if (e) e.preventDefault();
+    downloadCV('Dharani_Kumar_Subban_Mechanical_Engineer_CV.pdf');
+    setDownloadedToast(true);
+    setTimeout(() => setDownloadedToast(false), 4000);
+  };
+
+  // Lock body scroll and close modal on Escape key
+  useEffect(() => {
+    if (selectedProject) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setSelectedProject(null);
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.body.style.overflow = 'unset';
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [selectedProject]);
 
   // 1. CUSTOM WRENCH CURSOR (Framer Motion with physics spring)
   const cursorX = useMotionValue(-100);
@@ -668,6 +702,41 @@ export default function MechanicalEngineerPortfolio() {
 
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setFormError(null);
+
+    // 1. Honeypot Bot Trap: If hidden bot field is filled, silently discard spam
+    if (honeypot) {
+      setFormStatus('sent');
+      setTimeout(() => setFormStatus('idle'), 3000);
+      return;
+    }
+
+    // 2. Automated Script Detection: Form submitted abnormally fast (< 1.2s)
+    if (Date.now() - formMountTime.current < 1200) {
+      setFormError('SECURITY PROTOCOL: Rapid automated submission rejected by Shield.');
+      return;
+    }
+
+    // 3. Rate-Limiting Protection: Enforce 10-second cooldown between transmissions
+    if (Date.now() - lastSubmitTime.current < 10000) {
+      setFormError('RATE LIMIT: Telemetry cooldown active. Please wait 10 seconds.');
+      return;
+    }
+
+    // 4. Input Sanitization & RFC Email Validation
+    const cleanEmail = formData.email.trim();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(cleanEmail)) {
+      setFormError('INVALID COMM CHANNEL: Please enter a verified email address.');
+      return;
+    }
+
+    if (formData.name.trim().length < 2 || formData.message.trim().length < 8) {
+      setFormError('PAYLOAD INSUFFICIENT: Complete name and transmission specification.');
+      return;
+    }
+
+    lastSubmitTime.current = Date.now();
     setFormStatus('transmitting');
     setTimeout(() => {
       setFormStatus('sent');
@@ -683,31 +752,22 @@ export default function MechanicalEngineerPortfolio() {
   };
 
   return (
-    <>
+    <div className="min-h-screen bg-[#080a0f] text-[#f1f5f9] selection:bg-[#ff5f15] selection:text-black relative md:cursor-none overflow-x-hidden">
       {/* ------------------------------------------------------------ */}
-      {/* 0. GLOBAL GATEKEEPER "SWARM REBUILD" PRELOADER               */}
+      {/* 0. GLOBAL GATEKEEPER "SWARM REBUILD" PRELOADER OVERLAY       */}
       {/* ------------------------------------------------------------ */}
-      <AnimatePresence mode="wait">
+      <AnimatePresence>
         {isBuilding && (
           <SwarmPreloader onComplete={() => setIsBuilding(false)} />
         )}
       </AnimatePresence>
 
       {/* ------------------------------------------------------------ */}
-      {/* MAIN PORTFOLIO APPLICATION (Strictly gated until !isBuilding)*/}
+      {/* 1. CUSTOM MECHANICAL WRENCH CURSOR (Only active when ready)  */}
       {/* ------------------------------------------------------------ */}
       {!isBuilding && (
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-          className="min-h-screen bg-[#080a0f] text-[#f1f5f9] selection:bg-[#ff5f15] selection:text-black relative md:cursor-none overflow-x-hidden"
-        >
-          {/* ------------------------------------------------------------ */}
-          {/* 1. CUSTOM MECHANICAL WRENCH CURSOR                           */}
-          {/* ------------------------------------------------------------ */}
-          <motion.div
-            className="fixed top-0 left-0 pointer-events-none z-[9999] hidden md:block"
+          className="fixed top-0 left-0 pointer-events-none z-[9999] hidden md:block"
           style={{
             x: smoothX,
             y: smoothY,
@@ -746,10 +806,12 @@ export default function MechanicalEngineerPortfolio() {
             </span>
           </motion.div>
         </motion.div>
+      )}
 
-        {/* ------------------------------------------------------------ */}
-        {/* 2. GEAR-DRIVEN SCROLL PROGRESS INDICATOR (Bottom Right)      */}
-        {/* ------------------------------------------------------------ */}
+      {/* ------------------------------------------------------------ */}
+      {/* 2. GEAR-DRIVEN SCROLL PROGRESS INDICATOR (Bottom Right)      */}
+      {/* ------------------------------------------------------------ */}
+      {!isBuilding && (
         <div className="fixed bottom-6 right-6 z-40 flex flex-col items-center">
         <motion.div
           onClick={scrollToTop}
@@ -806,10 +868,25 @@ export default function MechanicalEngineerPortfolio() {
             <span className="text-zinc-600">CAD</span>
           </div>
         </div>
+      )}
 
+      {/* ------------------------------------------------------------ */}
+      {/* 3. ACTUAL PORTFOLIO COMPONENTS (Fully preloaded & mounted)   */}
+      {/* ------------------------------------------------------------ */}
+      <motion.div
+        animate={{
+          opacity: isBuilding ? 0.2 : 1,
+          filter: isBuilding ? 'blur(1.5px)' : 'blur(0px)',
+          scale: isBuilding ? 0.99 : 1,
+        }}
+        transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+        className={`w-full relative z-10 ${
+          isBuilding ? 'pointer-events-none select-none max-h-screen overflow-hidden' : ''
+        }`}
+      >
         {/* Background CAD grid */}
-        <div className="fixed inset-0 bg-cad-grid pointer-events-none opacity-40 z-0" />
-        <div className="fixed inset-0 bg-gradient-to-b from-transparent via-[#080a0f]/80 to-[#080a0f] pointer-events-none z-0" />
+        <div className="fixed inset-0 bg-cad-grid pointer-events-none opacity-40 -z-10" />
+        <div className="fixed inset-0 bg-gradient-to-b from-transparent via-[#080a0f]/60 to-[#080a0f] pointer-events-none -z-10" />
 
         {/* ------------------------------------------------------------ */}
         {/* TOP SYSTEM STATUS BAR & NAVIGATION                           */}
@@ -951,13 +1028,14 @@ export default function MechanicalEngineerPortfolio() {
                 <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform" />
               </a>
 
-              <a
-                href="#contact"
-                className="px-6 py-3 rounded-md bg-[#121620] border border-white/20 text-white font-bold text-sm tracking-wide font-mono-cad uppercase hover:border-[#ff5f15] hover:text-[#ff5f15] transition-all flex items-center gap-2"
+              <button
+                type="button"
+                onClick={handleDownloadCV}
+                className="px-6 py-3 rounded-md bg-[#121620] border border-white/20 text-white font-bold text-sm tracking-wide font-mono-cad uppercase hover:border-[#ff5f15] hover:text-[#ff5f15] transition-all flex items-center gap-2 cursor-pointer shadow-lg hover:shadow-[0_0_15px_rgba(255,95,21,0.25)]"
               >
-                <Download size={16} />
-                <span>TECHNICAL DOSSIER / CV</span>
-              </a>
+                <Download size={16} className="text-[#ff5f15]" />
+                <span>TECHNICAL DOSSIER / CV [PDF]</span>
+              </button>
 
               <button
                 onClick={handleCopyEmail}
@@ -994,6 +1072,7 @@ export default function MechanicalEngineerPortfolio() {
           </div>
 
           <div className="lg:col-span-5">
+            {/* Interactive Engineering Schematic / Active Rotating Gear Assembly */}
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -1005,54 +1084,13 @@ export default function MechanicalEngineerPortfolio() {
                   <Ruler size={14} className="text-[#ff5f15]" />
                   <span>CAD SPECIFICATION: ASSEMBLY FIG. 01</span>
                 </div>
-                <span className="text-[#ff5f15] bg-[#ff5f15]/10 px-2 py-0.5 rounded text-[10px] border border-[#ff5f15]/20">
-                  INTERACTIVE
+                <span className="text-[#ff5f15] bg-[#ff5f15]/10 px-2.5 py-0.5 rounded text-[10px] border border-[#ff5f15]/30 font-bold uppercase tracking-wider">
+                  ACTIVE GEAR TRAIN
                 </span>
               </div>
 
-              <div className="relative aspect-square max-h-[360px] w-full flex items-center justify-center bg-[#07090e] rounded-lg border border-white/5 p-4 overflow-hidden">
-                <div className="absolute inset-0 bg-cad-grid-dense opacity-30" />
-
-                <svg viewBox="0 0 300 300" className="w-full h-full relative z-10" fill="none">
-                  <circle cx="150" cy="150" r="120" stroke="#252d3d" strokeWidth="1.5" strokeDasharray="4 4" />
-                  <circle cx="150" cy="150" r="105" stroke="#ff5f15" strokeWidth="1" strokeOpacity="0.4" />
-                  <circle cx="150" cy="150" r="85" stroke="#3b465c" strokeWidth="1.5" />
-                  <circle cx="150" cy="150" r="50" stroke="#ff5f15" strokeWidth="2" />
-                  <circle cx="150" cy="150" r="22" fill="#121620" stroke="#ffffff" strokeWidth="1.5" />
-
-                  {[0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330].map((deg) => (
-                    <g key={deg} transform={`rotate(${deg} 150 150)`}>
-                      <line x1="150" y1="28" x2="150" y2="35" stroke="#ff5f15" strokeWidth="2.5" />
-                      <circle cx="150" cy="65" r="3" fill="#252d3d" />
-                    </g>
-                  ))}
-
-                  <g className="animate-[spin_20s_linear_infinite]" style={{ transformOrigin: '150px 150px' }}>
-                    <line x1="150" y1="150" x2="235" y2="150" stroke="#ff5f15" strokeWidth="2" />
-                    <circle cx="235" cy="150" r="5" fill="#ff5f15" />
-                    <line x1="150" y1="150" x2="90" y2="70" stroke="#facc15" strokeWidth="1.5" strokeDasharray="3 3" />
-                    <polygon points="90,70 85,80 97,77" fill="#facc15" />
-                  </g>
-
-                  <line x1="15" y1="150" x2="285" y2="150" stroke="#475569" strokeWidth="0.8" strokeDasharray="5 5" />
-                  <line x1="150" y1="15" x2="150" y2="285" stroke="#475569" strokeWidth="0.8" strokeDasharray="5 5" />
-
-                  <text x="160" y="45" fill="#ff5f15" fontSize="8" fontFamily="monospace">Ø 240mm PCD</text>
-                  <text x="160" y="110" fill="#94a3b8" fontSize="8" fontFamily="monospace">σ_MAX = 184 MPa</text>
-                  <text x="30" y="275" fill="#64748b" fontSize="8" fontFamily="monospace">TOLERANCE: ±0.015 mm</text>
-                  <text x="190" y="275" fill="#facc15" fontSize="8" fontFamily="monospace">EFFICIENCY: 98.2%</text>
-                </svg>
-
-                <div className="absolute inset-x-0 h-1 bg-gradient-to-r from-transparent via-[#ff5f15] to-transparent animate-laser-sweep opacity-70 pointer-events-none" />
-              </div>
-
-              <div className="mt-4 pt-3 border-t border-white/10 flex items-center justify-between text-[11px] font-mono-cad">
-                <div className="flex items-center gap-1.5 text-zinc-300">
-                  <Activity size={13} className="text-[#ff5f15]" />
-                  <span>KINEMATICS: OPERATIONAL</span>
-                </div>
-                <div className="text-zinc-500">SCALE: 1:1 [METRIC]</div>
-              </div>
+              {/* Active Multi-Gear Mechanical Assembly */}
+              <ActiveGearAssembly />
             </motion.div>
           </div>
         </div>
@@ -1352,7 +1390,7 @@ export default function MechanicalEngineerPortfolio() {
       {/* ------------------------------------------------------------ */}
       {/* EDUCATION SECTION (BENTO CREDENTIAL MATRIX)                  */}
       {/* ------------------------------------------------------------ */}
-      <section id="education" className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-t border-white/10">
+      <section id="education" className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-t border-white/10 relative z-10">
         <div className="mb-12">
           <div className="inline-flex items-center gap-2 text-xs font-mono-cad text-[#ff5f15] uppercase tracking-widest mb-2">
             <GraduationCap size={14} />
@@ -1494,7 +1532,7 @@ export default function MechanicalEngineerPortfolio() {
       {/* ------------------------------------------------------------ */}
       {/* WORK HISTORY: PROCESS & LOGISTICS TRACK                      */}
       {/* ------------------------------------------------------------ */}
-      <section id="experience" className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-t border-white/10">
+      <section id="experience" className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-t border-white/10 relative z-10">
         <div className="mb-12">
           <div className="inline-flex items-center gap-2 text-xs font-mono-cad text-[#ff5f15] uppercase tracking-widest mb-2">
             <Workflow size={14} />
@@ -1581,7 +1619,7 @@ export default function MechanicalEngineerPortfolio() {
       {/* ------------------------------------------------------------ */}
       {/* TECHNICAL SPECIFICATIONS: SKILLS MATRIX                      */}
       {/* ------------------------------------------------------------ */}
-      <section id="skills" className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-t border-white/10">
+      <section id="skills" className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-t border-white/10 relative z-10">
         <div className="mb-12">
           <div className="inline-flex items-center gap-2 text-xs font-mono-cad text-[#ff5f15] uppercase tracking-widest mb-2">
             <Cpu size={14} />
@@ -1702,74 +1740,71 @@ export default function MechanicalEngineerPortfolio() {
       {/* ------------------------------------------------------------ */}
       {/* COMMS CONSOLE & CONTACT DIAGNOSTIC INTERFACE                */}
       {/* ------------------------------------------------------------ */}
-      <section id="contact" className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-t border-white/10">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-          <div className="lg:col-span-5 space-y-6">
-            <div className="inline-flex items-center gap-2 text-xs font-mono-cad text-[#ff5f15] uppercase tracking-widest">
+      <section id="contact" className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-t border-white/10 relative z-10">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 relative z-10">
+          <div className="lg:col-span-5 space-y-6 relative z-10">
+            <div className="inline-flex items-center gap-2 text-xs font-mono-cad text-[#ff5f15] uppercase tracking-widest font-semibold">
               <Terminal size={14} />
               <span>Section 05 // Direct Transmission</span>
             </div>
-            <h2 className="text-3xl sm:text-5xl font-black text-white tracking-tight uppercase">
+            <h2 className="text-3xl sm:text-5xl font-black text-white tracking-tight uppercase drop-shadow-[0_2px_12px_rgba(0,0,0,0.8)]">
               Initialize Comms
             </h2>
-            <p className="text-zinc-400 text-sm leading-relaxed">
+            <p className="text-zinc-200 text-sm leading-relaxed">
               Available for graduate mechanical engineering roles, industrial process optimization contracts, and operational workflow advisory. Reach out directly or dispatch a transmission via the diagnostic console.
             </p>
 
             <div className="space-y-4 pt-2 font-mono-cad text-xs">
               <div
                 onClick={handleCopyEmail}
-                className="p-4 rounded-lg bg-[#0d1017] border border-white/10 hover:border-[#ff5f15] transition-all cursor-pointer group flex items-center justify-between"
+                className="p-4 rounded-lg bg-[#0d1017] border border-white/20 hover:border-[#ff5f15] transition-all cursor-pointer group flex items-center justify-between shadow-lg"
               >
                 <div className="flex items-center gap-3">
-                  <div className="p-2 rounded bg-[#121620] text-[#ff5f15]">
-                    <Mail size={16} />
+                  <div className="p-2.5 rounded bg-[#121620] text-[#ff5f15] border border-[#ff5f15]/30">
+                    <Mail size={18} />
                   </div>
                   <div>
-                    <div className="text-zinc-500 text-[10px]">DIRECT TRANSMISSION DISPATCH</div>
-                    <div className="text-white font-bold group-hover:text-[#ff5f15] transition-colors">
+                    <div className="text-zinc-400 text-[10px] tracking-wider uppercase font-semibold">DIRECT TRANSMISSION DISPATCH</div>
+                    <div className="text-white font-bold group-hover:text-[#ff5f15] transition-colors text-sm">
                       dharani.subban@engineering-mech.co.uk
                     </div>
                   </div>
                 </div>
-                <div className="text-zinc-500 group-hover:text-white">
-                  {copiedEmail ? <Check size={16} className="text-emerald-400" /> : <Copy size={16} />}
+                <div className="text-zinc-400 group-hover:text-white p-1">
+                  {copiedEmail ? <Check size={18} className="text-emerald-400" /> : <Copy size={18} />}
                 </div>
               </div>
 
-              <div className="p-4 rounded-lg bg-[#0d1017] border border-white/10 flex items-center gap-3">
-                <div className="p-2 rounded bg-[#121620] text-[#facc15]">
-                  <MapPin size={16} />
+              <div className="p-4 rounded-lg bg-[#0d1017] border border-white/20 flex items-center gap-3 shadow-lg">
+                <div className="p-2.5 rounded bg-[#121620] text-[#facc15] border border-[#facc15]/30">
+                  <MapPin size={18} />
                 </div>
                 <div>
-                  <div className="text-zinc-500 text-[10px]">CURRENT BASE OF OPERATIONS</div>
-                  <div className="text-white font-bold">London, United Kingdom (Open to Global Relocation)</div>
+                  <div className="text-zinc-400 text-[10px] tracking-wider uppercase font-semibold">CURRENT BASE OF OPERATIONS</div>
+                  <div className="text-white font-bold text-sm">London, United Kingdom (Open to Global Relocation)</div>
                 </div>
               </div>
 
-              <div className="p-4 rounded-lg bg-[#0d1017] border border-white/10 flex items-center gap-3">
-                <div className="p-2 rounded bg-[#121620] text-emerald-400">
-                  <ShieldCheck size={16} />
+              <div className="p-4 rounded-lg bg-[#0d1017] border border-white/20 flex items-center gap-3 shadow-lg">
+                <div className="p-2.5 rounded bg-[#121620] text-emerald-400 border border-emerald-400/30">
+                  <ShieldCheck size={18} />
                 </div>
                 <div>
-                  <div className="text-zinc-500 text-[10px]">RIGHT TO WORK &amp; COMPLIANCE</div>
-                  <div className="text-white font-bold">UK Full Working Rights &bull; ISO / OSHA Audited</div>
+                  <div className="text-zinc-400 text-[10px] tracking-wider uppercase font-semibold">RIGHT TO WORK &amp; COMPLIANCE</div>
+                  <div className="text-white font-bold text-sm">UK Full Working Rights &bull; ISO / OSHA Audited</div>
                 </div>
               </div>
             </div>
 
             <div className="pt-2">
-              <a
-                href="#contact"
-                onClick={(e) => {
-                  e.preventDefault();
-                  alert("Dossier Download: Dharani_Kumar_Subban_Mechanical_Engineer_CV.pdf (Simulated Transmission Ready)");
-                }}
-                className="w-full py-3.5 px-6 rounded-md bg-[#121620] border border-[#ff5f15] text-[#ff5f15] hover:bg-[#ff5f15] hover:text-[#050608] transition-all font-mono-cad text-xs uppercase font-bold tracking-wider flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(255,95,21,0.2)]"
+              <button
+                type="button"
+                onClick={handleDownloadCV}
+                className="w-full py-4 px-6 rounded-md bg-[#121620] border-2 border-[#ff5f15] text-[#ff5f15] hover:bg-[#ff5f15] hover:text-[#050608] transition-all font-mono-cad text-xs uppercase font-bold tracking-wider flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(255,95,21,0.25)] hover:shadow-[0_0_25px_rgba(255,95,21,0.5)] cursor-pointer"
               >
-                <Download size={16} />
+                <Download size={18} />
                 <span>DOWNLOAD COMPLETE MECHANICAL CV [PDF]</span>
-              </a>
+              </button>
             </div>
           </div>
 
@@ -1780,10 +1815,36 @@ export default function MechanicalEngineerPortfolio() {
                   <span className="w-2.5 h-2.5 rounded-full bg-[#ff5f15] animate-ping" />
                   <span className="font-bold">COMMS TERMINAL: PORT 8080 // ONLINE</span>
                 </div>
-                <span className="text-zinc-500">256-BIT ENCRYPTION</span>
+                <div className="flex items-center gap-3 text-[10px]">
+                  <span className="text-zinc-500 hidden sm:inline">256-BIT ENCRYPTION</span>
+                  <span className="text-emerald-400 flex items-center gap-1 font-semibold">
+                    <ShieldCheck size={12} />
+                    <span>BOT SHIELD ACTIVE</span>
+                  </span>
+                </div>
               </div>
 
               <form onSubmit={handleFormSubmit} className="space-y-4">
+                {/* Security Honeypot Bot Trap (Invisible to humans, traps automated scrapers) */}
+                <div className="hidden" aria-hidden="true" style={{ display: 'none' }}>
+                  <label htmlFor="hp_defense_token">Security Token</label>
+                  <input
+                    id="hp_defense_token"
+                    type="text"
+                    name="hp_defense_token"
+                    tabIndex={-1}
+                    autoComplete="off"
+                    value={honeypot}
+                    onChange={(e) => setHoneypot(e.target.value)}
+                  />
+                </div>
+
+                {formError && (
+                  <div className="p-3 rounded bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs font-mono-cad flex items-center gap-2">
+                    <AlertTriangle size={14} className="shrink-0 text-rose-400" />
+                    <span>{formError}</span>
+                  </div>
+                )}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-[11px] font-mono-cad text-zinc-400 uppercase tracking-wider mb-1.5">
@@ -1882,7 +1943,7 @@ export default function MechanicalEngineerPortfolio() {
       {/* ------------------------------------------------------------ */}
       {/* FOOTER & SYSTEM SPECIFICATIONS                               */}
       {/* ------------------------------------------------------------ */}
-      <footer className="border-t border-white/10 bg-[#050608] text-zinc-500 text-xs font-mono-cad py-10 px-4 sm:px-6 lg:px-8">
+      <footer className="border-t border-white/10 bg-[#050608] relative z-10 text-zinc-500 text-xs font-mono-cad py-10 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-3 text-zinc-400">
             <Cog size={16} className="text-[#ff5f15]" />
@@ -1916,19 +1977,24 @@ export default function MechanicalEngineerPortfolio() {
           </div>
         </div>
       </footer>
+      </motion.div>
 
       {/* ------------------------------------------------------------ */}
-      {/* INTERACTIVE CAD BLUEPRINT MODAL                              */}
+      {/* 4. INTERACTIVE CAD BLUEPRINT MODAL (Global Viewport Fixed)   */}
       {/* ------------------------------------------------------------ */}
       <AnimatePresence>
         {selectedProject && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 lg:p-8 bg-black/85 backdrop-blur-md">
+          <div
+            className="fixed inset-0 z-[99999] flex items-center justify-center p-4 sm:p-6 lg:p-8 bg-black/90 backdrop-blur-md overflow-y-auto"
+            onClick={() => setSelectedProject(null)}
+          >
             <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              initial={{ opacity: 0, scale: 0.9, y: 15 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              transition={{ duration: 0.3 }}
-              className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto bg-[#0d1017] rounded-xl border-2 border-[#ff5f15] shadow-[0_0_40px_rgba(255,95,21,0.35)] p-6 sm:p-8 tech-corners"
+              exit={{ opacity: 0, scale: 0.9, y: 15 }}
+              transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+              onClick={(e) => e.stopPropagation()}
+              className="relative w-full max-w-4xl max-h-[88vh] overflow-y-auto bg-[#0d1017] rounded-xl border-2 border-[#ff5f15] shadow-[0_0_50px_rgba(255,95,21,0.4)] p-6 sm:p-8 tech-corners"
             >
               <div className="flex items-center justify-between border-b border-white/10 pb-4 mb-6">
                 <div>
@@ -1944,8 +2010,10 @@ export default function MechanicalEngineerPortfolio() {
                 </div>
 
                 <button
+                  type="button"
                   onClick={() => setSelectedProject(null)}
-                  className="p-2 rounded bg-white/5 hover:bg-[#ff5f15] hover:text-[#050608] text-white transition-all"
+                  className="p-2.5 rounded-lg bg-white/5 hover:bg-[#ff5f15] hover:text-[#050608] text-zinc-300 hover:scale-105 transition-all cursor-pointer"
+                  title="Close Blueprint Dossier"
                 >
                   <X size={20} />
                 </button>
@@ -2000,21 +2068,52 @@ export default function MechanicalEngineerPortfolio() {
                 </ul>
               </div>
 
-              <div className="pt-4 border-t border-white/10 flex items-center justify-between font-mono-cad text-xs">
+              <div className="pt-4 border-t border-white/10 flex flex-wrap items-center justify-between gap-3 font-mono-cad text-xs">
                 <span className="text-zinc-500">SPECIFICATION DOCUMENT: ISO-CERTIFIED</span>
-                <button
-                  onClick={() => setSelectedProject(null)}
-                  className="px-4 py-2 rounded bg-[#ff5f15] text-[#050608] font-bold uppercase hover:bg-[#ff7a38] transition-all"
-                >
-                  CLOSE BLUEPRINT
-                </button>
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={handleDownloadCV}
+                    className="px-4 py-2 rounded bg-[#121620] border border-[#ff5f15] text-[#ff5f15] font-bold uppercase hover:bg-[#ff5f15] hover:text-[#050608] transition-all flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <Download size={14} />
+                    <span>DOWNLOAD CV [PDF]</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedProject(null)}
+                    className="px-4 py-2 rounded bg-[#ff5f15] text-[#050608] font-black uppercase hover:bg-[#ff7a38] transition-all cursor-pointer shadow-[0_0_15px_rgba(255,95,21,0.3)]"
+                  >
+                    CLOSE BLUEPRINT
+                  </button>
+                </div>
               </div>
             </motion.div>
           </div>
         )}
       </AnimatePresence>
-        </motion.div>
-      )}
-    </>
+
+      {/* Floating Download Confirmation Toast */}
+      <AnimatePresence>
+        {downloadedToast && (
+          <motion.div
+            initial={{ opacity: 0, y: 40, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 40, scale: 0.95 }}
+            className="fixed bottom-6 left-6 z-[999999] px-4 py-3 rounded-lg bg-[#0d1017] border-2 border-[#ff5f15] shadow-[0_0_30px_rgba(255,95,21,0.4)] flex items-center gap-3 font-mono-cad text-xs text-white"
+          >
+            <CheckCircle2 size={18} className="text-emerald-400 shrink-0" />
+            <div>
+              <div className="text-[10px] text-[#ff5f15] font-bold tracking-wider uppercase">
+                TRANSMISSION DISPATCHED // SUCCESS
+              </div>
+              <div className="text-zinc-200">
+                Dharani_Kumar_Subban_Mechanical_Engineer_CV.pdf downloaded
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 }
