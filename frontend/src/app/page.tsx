@@ -731,8 +731,8 @@ export default function MechanicalEngineerPortfolio() {
       return;
     }
 
-    if (formData.name.trim().length < 2 || formData.message.trim().length < 8) {
-      setFormError('PAYLOAD INSUFFICIENT: Complete name and transmission specification.');
+    if (!formData.name.trim() || !formData.message.trim()) {
+      setFormError('PAYLOAD INSUFFICIENT: Please fill out both identifier name and message payload.');
       return;
     }
 
