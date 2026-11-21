@@ -580,6 +580,19 @@ function SchematicVisual({ type }: { type: 'pneumatic' | 'energy' | 'bio' | 'kar
 }
 
 /* ------------------------------------------------------------------ */
+/* GLOBAL CONSTANTS & COMMS CONFIGURATION                              */
+/* ------------------------------------------------------------------ */
+const CONTACT_EMAIL = 'dharanikumar0318@gmail.com';
+const GMAIL_COMPOSE_URL = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(
+  CONTACT_EMAIL
+)}&su=${encodeURIComponent('Mechanical Engineering Inquiry // Dharani Kumar Subban')}&body=${encodeURIComponent(
+  'Hi Dharani,\n\nI reviewed your Mechanical Engineering portfolio and would like to get in touch regarding:\n\n'
+)}`;
+const MAILTO_URL = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(
+  'Mechanical Engineering Inquiry // Dharani Kumar Subban'
+)}`;
+
+/* ------------------------------------------------------------------ */
 /* MAIN COMPONENT: DEVELOPER PORTFOLIO FOR DHARANI KUMAR SUBBAN       */
 /* ------------------------------------------------------------------ */
 
@@ -590,12 +603,6 @@ export default function MechanicalEngineerPortfolio() {
   const [activeSkillCategory, setActiveSkillCategory] = useState<string>('Data Analysis');
   const [currentTime, setCurrentTime] = useState<string>('');
   const [copiedEmail, setCopiedEmail] = useState<boolean>(false);
-  const [formStatus, setFormStatus] = useState<'idle' | 'transmitting' | 'sent'>('idle');
-  const [formData, setFormData] = useState({ name: '', email: '', subject: '', message: '' });
-  const [honeypot, setHoneypot] = useState<string>('');
-  const [formError, setFormError] = useState<string | null>(null);
-  const formMountTime = useRef<number>(Date.now());
-  const lastSubmitTime = useRef<number>(0);
 
   // Instant CV Download Handler
   const handleDownloadCV = (e?: React.MouseEvent) => {
@@ -694,57 +701,11 @@ export default function MechanicalEngineerPortfolio() {
     return () => clearInterval(timer);
   }, []);
 
-  const handleCopyEmail = () => {
-    navigator.clipboard.writeText('dharani.subban@engineering-mech.co.uk');
+  const handleCopyEmail = (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    navigator.clipboard.writeText(CONTACT_EMAIL);
     setCopiedEmail(true);
     setTimeout(() => setCopiedEmail(false), 2500);
-  };
-
-  const handleFormSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setFormError(null);
-
-    // 1. Honeypot Bot Trap: If hidden bot field is filled, silently discard spam
-    if (honeypot) {
-      setFormStatus('sent');
-      setTimeout(() => setFormStatus('idle'), 3000);
-      return;
-    }
-
-    // 2. Automated Script Detection: Form submitted abnormally fast (< 1.2s)
-    if (Date.now() - formMountTime.current < 1200) {
-      setFormError('SECURITY PROTOCOL: Rapid automated submission rejected by Shield.');
-      return;
-    }
-
-    // 3. Rate-Limiting Protection: Enforce 10-second cooldown between transmissions
-    if (Date.now() - lastSubmitTime.current < 10000) {
-      setFormError('RATE LIMIT: Telemetry cooldown active. Please wait 10 seconds.');
-      return;
-    }
-
-    // 4. Input Sanitization & RFC Email Validation
-    const cleanEmail = formData.email.trim();
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(cleanEmail)) {
-      setFormError('INVALID COMM CHANNEL: Please enter a verified email address.');
-      return;
-    }
-
-    if (!formData.name.trim() || !formData.message.trim()) {
-      setFormError('PAYLOAD INSUFFICIENT: Please fill out both identifier name and message payload.');
-      return;
-    }
-
-    lastSubmitTime.current = Date.now();
-    setFormStatus('transmitting');
-    setTimeout(() => {
-      setFormStatus('sent');
-      setTimeout(() => {
-        setFormData({ name: '', email: '', subject: '', message: '' });
-        setFormStatus('idle');
-      }, 4000);
-    }, 1200);
   };
 
   const scrollToTop = () => {
@@ -1741,29 +1702,39 @@ export default function MechanicalEngineerPortfolio() {
               Initialize Comms
             </h2>
             <p className="text-zinc-200 text-sm leading-relaxed">
-              Available for graduate mechanical engineering roles, industrial process optimization contracts, and operational workflow advisory. Reach out directly or dispatch a transmission via the diagnostic console.
+              Available for graduate mechanical engineering roles, industrial process optimization contracts, and operational workflow advisory. Reach out directly via Gmail or dispatch your transmission using the engineering terminal.
             </p>
 
             <div className="space-y-4 pt-2 font-mono-cad text-xs">
-              <div
-                onClick={handleCopyEmail}
-                className="p-4 rounded-lg bg-[#0d1017] border border-white/20 hover:border-[#ff5f15] transition-all cursor-pointer group flex items-center justify-between shadow-lg"
+              <a
+                href={GMAIL_COMPOSE_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="p-4 rounded-lg bg-[#0d1017] border border-white/20 hover:border-[#ff5f15] transition-all cursor-pointer group flex items-center justify-between shadow-lg block"
               >
                 <div className="flex items-center gap-3">
                   <div className="p-2.5 rounded bg-[#121620] text-[#ff5f15] border border-[#ff5f15]/30">
                     <Mail size={18} />
                   </div>
                   <div>
-                    <div className="text-zinc-400 text-[10px] tracking-wider uppercase font-semibold">DIRECT TRANSMISSION DISPATCH</div>
-                    <div className="text-white font-bold group-hover:text-[#ff5f15] transition-colors text-sm">
-                      dharani.subban@engineering-mech.co.uk
+                    <div className="text-zinc-400 text-[10px] tracking-wider uppercase font-semibold">DIRECT GMAIL DISPATCH</div>
+                    <div className="text-white font-bold group-hover:text-[#ff5f15] transition-colors text-sm break-all">
+                      {CONTACT_EMAIL}
                     </div>
                   </div>
                 </div>
-                <div className="text-zinc-400 group-hover:text-white p-1">
+                <div
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleCopyEmail();
+                  }}
+                  title="Copy email address"
+                  className="text-zinc-400 hover:text-white p-2 rounded hover:bg-white/5 transition-colors"
+                >
                   {copiedEmail ? <Check size={18} className="text-emerald-400" /> : <Copy size={18} />}
                 </div>
-              </div>
+              </a>
 
               <div className="p-4 rounded-lg bg-[#0d1017] border border-white/20 flex items-center gap-3 shadow-lg">
                 <div className="p-2.5 rounded bg-[#121620] text-[#facc15] border border-[#facc15]/30">
@@ -1799,132 +1770,114 @@ export default function MechanicalEngineerPortfolio() {
           </div>
 
           <div className="lg:col-span-7">
-            <div className="p-8 rounded-xl bg-[#0d1017] border border-white/15 laser-border-glow tech-corners">
-              <div className="flex items-center justify-between border-b border-white/10 pb-4 mb-6 font-mono-cad text-xs">
+            <div className="p-6 sm:p-8 rounded-xl bg-[#0d1017] border border-white/15 laser-border-glow tech-corners space-y-6">
+              {/* Header Status Bar */}
+              <div className="flex items-center justify-between border-b border-white/10 pb-4 font-mono-cad text-xs">
                 <div className="flex items-center gap-2 text-[#ff5f15]">
                   <span className="w-2.5 h-2.5 rounded-full bg-[#ff5f15] animate-ping" />
-                  <span className="font-bold">COMMS TERMINAL: PORT 8080 // ONLINE</span>
+                  <span className="font-bold">DIRECT COMMS DISPATCH // GMAIL GATEWAY</span>
                 </div>
                 <div className="flex items-center gap-3 text-[10px]">
-                  <span className="text-zinc-500 hidden sm:inline">256-BIT ENCRYPTION</span>
+                  <span className="text-zinc-500 hidden sm:inline">ZERO QUEUE DELAY</span>
                   <span className="text-emerald-400 flex items-center gap-1 font-semibold">
                     <ShieldCheck size={12} />
-                    <span>BOT SHIELD ACTIVE</span>
+                    <span>VERIFIED DIRECT CHANNEL</span>
                   </span>
                 </div>
               </div>
 
-              <form onSubmit={handleFormSubmit} className="space-y-4">
-                {/* Security Honeypot Bot Trap (Invisible to humans, traps automated scrapers) */}
-                <div className="hidden" aria-hidden="true" style={{ display: 'none' }}>
-                  <label htmlFor="hp_defense_token">Security Token</label>
-                  <input
-                    id="hp_defense_token"
-                    type="text"
-                    name="hp_defense_token"
-                    tabIndex={-1}
-                    autoComplete="off"
-                    value={honeypot}
-                    onChange={(e) => setHoneypot(e.target.value)}
-                  />
-                </div>
+              {/* Instructional Context */}
+              <div className="text-xs font-mono-cad text-zinc-400 leading-relaxed">
+                <span className="text-[#ff5f15] font-semibold">&gt; DIRECT PROTOCOL:</span> Intermediate contact form queue has been bypassed for instant, verified 1-to-1 engineering correspondence. Tap the terminal below to launch a pre-configured draft in <span className="text-white font-bold">Gmail</span>, or use the quick action buttons.
+              </div>
 
-                {formError && (
-                  <div className="p-3 rounded bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs font-mono-cad flex items-center gap-2">
-                    <AlertTriangle size={14} className="shrink-0 text-rose-400" />
-                    <span>{formError}</span>
+              {/* Main Interactive Email Terminal Banner */}
+              <a
+                href={GMAIL_COMPOSE_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group block p-5 sm:p-6 rounded-lg bg-[#121620] border-2 border-white/15 hover:border-[#ff5f15] transition-all shadow-xl hover:shadow-[0_0_30px_rgba(255,95,21,0.25)] relative overflow-hidden"
+              >
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10">
+                  <div className="space-y-1.5">
+                    <div className="flex items-center gap-2 text-[10px] font-mono-cad text-zinc-400 uppercase tracking-widest">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                      <span>PRIMARY INBOX DISPATCH DESTINATION</span>
+                    </div>
+                    <div className="text-base sm:text-lg lg:text-xl font-bold font-mono-cad text-white group-hover:text-[#ff5f15] transition-colors break-all flex items-center gap-2">
+                      <span>{CONTACT_EMAIL}</span>
+                    </div>
+                    <div className="text-[11px] font-mono-cad text-zinc-400">
+                      Subject preset: <span className="text-zinc-300">Mechanical Engineering Inquiry // Dharani Kumar Subban</span>
+                    </div>
                   </div>
-                )}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+                  <div className="shrink-0 flex items-center gap-2 self-start sm:self-center px-4 py-2.5 rounded bg-[#ff5f15]/10 border border-[#ff5f15]/30 text-[#ff5f15] group-hover:bg-[#ff5f15] group-hover:text-[#050608] transition-all font-mono-cad text-xs font-bold uppercase tracking-wider">
+                    <span>COMPOSE IN GMAIL</span>
+                    <ExternalLink size={14} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                  </div>
+                </div>
+              </a>
+
+              {/* Action Buttons Row */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 font-mono-cad text-xs">
+                {/* 1. Primary Gmail Button */}
+                <a
+                  href={GMAIL_COMPOSE_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="py-3 px-4 rounded bg-[#ff5f15] text-[#050608] font-bold uppercase tracking-wider flex items-center justify-center gap-2 hover:bg-[#ff7a38] transition-all shadow-[0_0_20px_rgba(255,95,21,0.35)] text-center cursor-pointer"
+                >
+                  <Send size={14} />
+                  <span>OPEN GMAIL</span>
+                </a>
+
+                {/* 2. Copy Address Button */}
+                <button
+                  type="button"
+                  onClick={handleCopyEmail}
+                  className="py-3 px-4 rounded bg-[#121620] border border-white/20 text-white hover:border-[#ff5f15] hover:text-[#ff5f15] transition-all flex items-center justify-center gap-2 font-bold uppercase tracking-wider cursor-pointer"
+                >
+                  {copiedEmail ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
+                  <span>{copiedEmail ? 'COPIED TO CLIPBOARD' : 'COPY ADDRESS'}</span>
+                </button>
+
+                {/* 3. Mailto / Native Client Button */}
+                <a
+                  href={MAILTO_URL}
+                  className="py-3 px-4 rounded bg-[#121620] border border-white/20 text-zinc-300 hover:text-white hover:border-white/40 transition-all flex items-center justify-center gap-2 font-bold uppercase tracking-wider text-center"
+                >
+                  <Mail size={14} />
+                  <span>DEFAULT CLIENT</span>
+                </a>
+              </div>
+
+              {/* Telemetry / SLA Metrics Footer */}
+              <div className="pt-4 border-t border-white/10 grid grid-cols-1 sm:grid-cols-3 gap-4 font-mono-cad text-[11px]">
+                <div className="flex items-center gap-2 text-zinc-400">
+                  <Clock size={14} className="text-[#ff5f15] shrink-0" />
                   <div>
-                    <label className="block text-[11px] font-mono-cad text-zinc-400 uppercase tracking-wider mb-1.5">
-                      IDENTIFIER / FULL NAME *
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="e.g. Dr. Alan Turing"
-                      value={formData.name}
-                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className="w-full px-4 py-2.5 rounded bg-[#121620] border border-white/10 text-white font-mono-cad text-xs focus:border-[#ff5f15] focus:outline-none transition-colors"
-                    />
+                    <div className="text-zinc-500 text-[9px] uppercase">RESPONSE SLA</div>
+                    <div className="text-zinc-200 font-semibold">&lt; 24 HRS GUARANTEED</div>
                   </div>
+                </div>
+
+                <div className="flex items-center gap-2 text-zinc-400">
+                  <Activity size={14} className="text-emerald-400 shrink-0" />
                   <div>
-                    <label className="block text-[11px] font-mono-cad text-zinc-400 uppercase tracking-wider mb-1.5">
-                      COMM CHANNEL / EMAIL *
-                    </label>
-                    <input
-                      type="email"
-                      required
-                      placeholder="e.g. contact@enterprise.com"
-                      value={formData.email}
-                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      className="w-full px-4 py-2.5 rounded bg-[#121620] border border-white/10 text-white font-mono-cad text-xs focus:border-[#ff5f15] focus:outline-none transition-colors"
-                    />
+                    <div className="text-zinc-500 text-[9px] uppercase">AVAILABILITY</div>
+                    <div className="text-zinc-200 font-semibold">GRADUATE / CONTRACT</div>
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-[11px] font-mono-cad text-zinc-400 uppercase tracking-wider mb-1.5">
-                    TRANSMISSION SUBJECT / PROJECT DOMAIN *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. Energy Audit / Graduate Engineer Role / CAD Design Inquiry"
-                    value={formData.subject}
-                    onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded bg-[#121620] border border-white/10 text-white font-mono-cad text-xs focus:border-[#ff5f15] focus:outline-none transition-colors"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-[11px] font-mono-cad text-zinc-400 uppercase tracking-wider mb-1.5">
-                    TECHNICAL SPECIFICATION / MESSAGE PAYLOAD *
-                  </label>
-                  <textarea
-                    rows={4}
-                    required
-                    placeholder="Outline your operational challenge, project parameters, or engineering role..."
-                    value={formData.message}
-                    onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded bg-[#121620] border border-white/10 text-white font-mono-cad text-xs focus:border-[#ff5f15] focus:outline-none transition-colors resize-y"
-                  />
-                </div>
-
-                <div className="pt-2 flex items-center justify-between">
-                  <button
-                    type="submit"
-                    disabled={formStatus === 'transmitting'}
-                    className="px-6 py-3 rounded bg-[#ff5f15] text-[#050608] font-black text-xs font-mono-cad uppercase hover:bg-[#ff7a38] transition-all shadow-[0_0_20px_rgba(255,95,21,0.35)] flex items-center gap-2 disabled:opacity-50"
-                  >
-                    <Send size={14} />
-                    <span>
-                      {formStatus === 'transmitting'
-                        ? 'TRANSMITTING PACKET...'
-                        : formStatus === 'sent'
-                        ? 'PACKET RECEIVED'
-                        : 'DISPATCH TRANSMISSION'}
-                    </span>
-                  </button>
-
-                  <div className="text-[11px] font-mono-cad text-zinc-500">
-                    STATUS: {formStatus === 'transmitting' ? (
-                      <span className="text-[#facc15]">ENCRYPTING...</span>
-                    ) : formStatus === 'sent' ? (
-                      <span className="text-emerald-400 font-bold">TRANSMISSION CONFIRMED</span>
-                    ) : (
-                      'READY'
-                    )}
+                <div className="flex items-center gap-2 text-zinc-400">
+                  <ShieldCheck size={14} className="text-sky-400 shrink-0" />
+                  <div>
+                    <div className="text-zinc-500 text-[9px] uppercase">DISPATCH SECURITY</div>
+                    <div className="text-zinc-200 font-semibold">TLS 1.3 / SPF VERIFIED</div>
                   </div>
                 </div>
-
-                {formStatus === 'sent' && (
-                  <div className="p-3 rounded bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-mono-cad">
-                    &gt; PACKET ACKNOWLEDGED: Thank you for your inquiry. Dharani Kumar Subban will respond within 24 hours.
-                  </div>
-                )}
-              </form>
+              </div>
             </div>
           </div>
         </div>
